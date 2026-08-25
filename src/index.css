@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+@theme {
+  --color-blyver-ink: #12110f;
+  --color-blyver-charcoal: #24211d;
+  --color-blyver-ivory: #f7f4ee;
+  --color-blyver-champagne: #c8aa72;
+  --color-blyver-muted: #8e887e;
+}
