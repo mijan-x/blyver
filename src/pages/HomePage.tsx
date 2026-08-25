@@ -23,7 +23,7 @@ function HomePage() {
             </a>
 
             <nav className="hidden items-center gap-8 text-xs tracking-[0.18em] text-blyver-ivory/85 md:flex">
-              <a href="#collections" className="transition hover:text-blyver-champagne">COLLECTIONS</a>
+              <a href="/collections" className="transition hover:text-blyver-champagne">COLLECTIONS</a>
               <a href="#story" className="transition hover:text-blyver-champagne">OUR STORY</a>
               <a href="#contact" className="transition hover:text-blyver-champagne">CONTACT</a>
             </nav>
@@ -36,7 +36,7 @@ function HomePage() {
       </section>
 
       <div className="flex justify-center px-6 py-8 sm:py-10">
-        <a href="#collections" className="text-xs tracking-[0.22em] text-blyver-champagne transition hover:text-blyver-ivory">
+        <a href="/collections" className="text-xs tracking-[0.22em] text-blyver-champagne transition hover:text-blyver-ivory">
           EXPLORE COLLECTIONS
         </a>
       </div>
