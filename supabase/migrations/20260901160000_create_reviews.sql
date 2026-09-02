@@ -1,0 +1,7 @@
+create table public.reviews (id uuid primary key default gen_random_uuid(), user_id uuid not null default auth.uid() references auth.users(id) on delete cascade, product_id uuid not null references public.products(id) on delete cascade, rating integer not null check (rating between 1 and 5), title text not null check (char_length(title) between 1 and 120), body text not null check (char_length(body) between 1 and 2000), visible boolean not null default true, created_at timestamptz not null default now(), updated_at timestamptz not null default now(), unique (user_id, product_id));
+create trigger reviews_set_updated_at before update on public.reviews for each row execute function public.set_updated_at();
+alter table public.reviews enable row level security;
+create policy "Public sees visible reviews" on public.reviews for select using (visible or user_id = auth.uid() or public.is_admin());
+create policy "Delivered customers can add one review" on public.reviews for insert to authenticated with check (user_id = auth.uid() and exists (select 1 from public.order_items join public.orders on orders.id = order_items.order_id where order_items.product_id = reviews.product_id and orders.user_id = auth.uid() and orders.status = 'delivered'));
+create policy "Users edit their own reviews" on public.reviews for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "Admins manage reviews" on public.reviews for all to authenticated using (public.is_admin()) with check (public.is_admin());

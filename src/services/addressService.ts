@@ -1,0 +1,6 @@
+import { supabase } from '../lib/supabase'
+export type Address = { id: string; user_id: string; label: string; full_name: string; phone: string; division: string; district: string; area: string; full_address: string; is_default: boolean }
+export type AddressInput = Omit<Address, 'id' | 'user_id'>
+export async function getAddresses(userId: string) { const { data, error } = await supabase.from('addresses').select('id, user_id, label, full_name, phone, division, district, area, full_address, is_default').eq('user_id', userId).order('is_default', { ascending: false }).order('created_at', { ascending: false }); if (error) throw error; return (data ?? []) as Address[] }
+export async function saveAddress(userId: string, address: AddressInput, id?: string) { if (address.is_default) { const { error } = await supabase.from('addresses').update({ is_default: false }).eq('user_id', userId); if (error) throw error } const payload = { ...address, user_id: userId }; const { error } = id ? await supabase.from('addresses').update(payload).eq('id', id).eq('user_id', userId) : await supabase.from('addresses').insert(payload); if (error) throw error }
+export async function removeAddress(userId: string, id: string) { const { error } = await supabase.from('addresses').delete().eq('id', id).eq('user_id', userId); if (error) throw error }

@@ -1,6 +1,7 @@
 import brandCoverImage from '../assets/brand/landing-cover.png'
 import ladiesPursesImage from '../assets/collections/ladies-purses.jpg'
 import womensWatchesImage from '../assets/collections/womens-watches.jpg'
+import { Link } from 'react-router-dom'
 
 const collections = [
   {
@@ -9,6 +10,7 @@ const collections = [
     image: brandCoverImage,
     imageAlt: 'Blyver watch with gold accents',
     imagePosition: 'object-[10%_center]',
+    to: '/men',
   },
   {
     name: "Women’s Watches",
@@ -16,6 +18,7 @@ const collections = [
     image: womensWatchesImage,
     imageAlt: 'Woman wearing a gold watch',
     imagePosition: 'object-center',
+    to: '/women',
   },
   {
     name: 'Wallets',
@@ -23,6 +26,7 @@ const collections = [
     image: brandCoverImage,
     imageAlt: 'Blyver black leather wallet',
     imagePosition: 'object-[94%_center]',
+    to: '/men',
   },
   {
     name: 'Ladies’ Purses',
@@ -30,6 +34,7 @@ const collections = [
     image: ladiesPursesImage,
     imageAlt: 'Teal leather purse with gold details',
     imagePosition: 'object-center',
+    to: '/women',
   },
 ]
 
@@ -47,7 +52,7 @@ function CollectionsPage() {
 
         <div className="mt-14 grid gap-px bg-blyver-muted/30 sm:grid-cols-2">
           {collections.map((collection) => (
-            <article key={collection.name} className="group overflow-hidden bg-blyver-charcoal">
+            <Link key={collection.name} to={collection.to} className="group overflow-hidden bg-blyver-charcoal">
               <div className="h-64 overflow-hidden bg-black sm:h-72">
                 <img
                   src={collection.image}
@@ -64,7 +69,7 @@ function CollectionsPage() {
                   DISCOVER
                 </span>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </div>

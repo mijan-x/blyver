@@ -1,0 +1,11 @@
+import { supabase } from '../lib/supabase'
+
+export type CartLine = { id: string; quantity: number; product: { id: string; slug: string; name: string; original_price: number; sale_price: number | null; stock_quantity: number; product_images: Array<{ storage_path: string; alt_text: string; position: number }> | null } }
+export const cartUpdatedEvent = 'blyver:cart-updated'
+export function notifyCartUpdated() { window.dispatchEvent(new Event(cartUpdatedEvent)) }
+async function getCartId(userId: string) { const { data, error } = await supabase.from('carts').upsert({ user_id: userId }, { onConflict: 'user_id' }).select('id').single(); if (error) throw error; return data.id }
+export async function addCartItem(userId: string, productId: string) { const cartId = await getCartId(userId); const { data } = await supabase.from('cart_items').select('id, quantity').eq('cart_id', cartId).eq('product_id', productId).maybeSingle(); const result = data ? await supabase.from('cart_items').update({ quantity: data.quantity + 1 }).eq('id', data.id) : await supabase.from('cart_items').insert({ cart_id: cartId, product_id: productId, quantity: 1 }); if (!result.error) notifyCartUpdated(); return result }
+export async function getCartItems(userId: string): Promise<CartLine[]> { const cartId = await getCartId(userId); const { data, error } = await supabase.from('cart_items').select('id, quantity, product:products(id, slug, name, original_price, sale_price, stock_quantity, product_images(storage_path, alt_text, position))').eq('cart_id', cartId).order('created_at'); if (error) throw error; return (data ?? []) as unknown as CartLine[] }
+export async function getCartItemCount(userId: string) { const items = await getCartItems(userId); return items.reduce((total, item) => total + item.quantity, 0) }
+export async function updateCartQuantity(itemId: string, quantity: number) { const result = await supabase.from('cart_items').update({ quantity }).eq('id', itemId); if (!result.error) notifyCartUpdated(); return result }
+export async function removeCartItem(itemId: string) { const result = await supabase.from('cart_items').delete().eq('id', itemId); if (!result.error) notifyCartUpdated(); return result }

@@ -1,0 +1,6 @@
+import { useState } from 'react'
+import type { FormEvent } from 'react'
+import AuthFormShell from '../components/auth/AuthFormShell'
+import { supabase } from '../lib/supabase'
+function ForgotPasswordPage() { const [message, setMessage] = useState(''); const [error, setError] = useState(''); async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const email = String(new FormData(event.currentTarget).get('email')); const { error: authError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/update-password` }); if (authError) return setError(authError.message); setMessage('If that email has an account, a reset link is on its way.') } return <AuthFormShell eyebrow="PASSWORD RESET" title="Let’s get you back in." footer=""><form onSubmit={submit} className="space-y-5"><label className="block text-sm">Email<input required type="email" name="email" className="mt-2 w-full border border-blyver-ink/20 bg-transparent px-4 py-3" /></label>{error && <p role="alert" className="text-sm text-red-700">{error}</p>}{message && <p role="status" className="text-sm text-green-800">{message}</p>}<button className="w-full bg-blyver-ink px-5 py-4 text-[11px] tracking-[0.16em] text-blyver-ivory">SEND RESET LINK</button></form></AuthFormShell> }
+export default ForgotPasswordPage

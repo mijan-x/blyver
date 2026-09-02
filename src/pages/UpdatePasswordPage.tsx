@@ -1,0 +1,7 @@
+import { useState } from 'react'
+import type { FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
+import AuthFormShell from '../components/auth/AuthFormShell'
+import { supabase } from '../lib/supabase'
+function UpdatePasswordPage() { const [error, setError] = useState(''); const navigate = useNavigate(); async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); const password = String(form.get('password')); if (password !== String(form.get('confirmation'))) return setError('Your passwords do not match.'); const { error: authError } = await supabase.auth.updateUser({ password }); if (authError) return setError(authError.message); navigate('/account', { replace: true }) } return <AuthFormShell eyebrow="NEW PASSWORD" title="Choose a new password." footer=""><form onSubmit={submit} className="space-y-5"><label className="block text-sm">New password<input required minLength={8} type="password" name="password" className="mt-2 w-full border border-blyver-ink/20 bg-transparent px-4 py-3" /></label><label className="block text-sm">Confirm new password<input required minLength={8} type="password" name="confirmation" className="mt-2 w-full border border-blyver-ink/20 bg-transparent px-4 py-3" /></label>{error && <p role="alert" className="text-sm text-red-700">{error}</p>}<button className="w-full bg-blyver-ink px-5 py-4 text-[11px] tracking-[0.16em] text-blyver-ivory">UPDATE PASSWORD</button></form></AuthFormShell> }
+export default UpdatePasswordPage
