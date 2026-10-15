@@ -28,6 +28,10 @@ function ProductCard({ product }: ProductCardProps) {
             <img
               src={mainImage.url}
               alt={mainImage.altText}
+              width={600}
+              height={600}
+              loading="lazy"
+              decoding="async"
               className="size-full object-cover transition duration-700 group-hover:scale-105"
             />
           ) : (

@@ -62,8 +62,20 @@ export async function getCartItems(userId: string): Promise<CartLine[]> {
   return (data ?? []) as unknown as CartLine[];
 }
 export async function getCartItemCount(userId: string) {
-  const items = await getCartItems(userId);
-  return items.reduce((total, item) => total + item.quantity, 0);
+  // Read-only: never creates a cart and never joins products or images.
+  const { data: cart, error: cartError } = await supabase
+    .from("carts")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (cartError) throw cartError;
+  if (!cart) return 0;
+  const { data, error } = await supabase
+    .from("cart_items")
+    .select("quantity")
+    .eq("cart_id", cart.id);
+  if (error) throw error;
+  return (data ?? []).reduce((total, item) => total + item.quantity, 0);
 }
 export async function updateCartQuantity(itemId: string, quantity: number) {
   const result = await supabase

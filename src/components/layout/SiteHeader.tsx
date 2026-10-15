@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import logoImage from "../../assets/brand/blyver-logo.png";
+import logoImage from "../../assets/brand/blyver-logo-small.png";
 import { useAuth } from "../../features/auth/useAuth";
 import { cartUpdatedEvent, getCartItemCount } from "../../services/cartService";
 import {
@@ -73,7 +73,14 @@ function SiteHeader() {
           onClick={closeMenu}
         >
           <span className="grid size-9 place-items-center overflow-hidden rounded-full bg-blyver-ivory p-1">
-            <img src={logoImage} alt="" className="size-full object-contain" />
+            <img
+              src={logoImage}
+              alt=""
+              width={128}
+              height={125}
+              decoding="async"
+              className="size-full object-contain"
+            />
           </span>
           <span className="text-sm tracking-[0.28em]">BLYVER</span>
         </Link>

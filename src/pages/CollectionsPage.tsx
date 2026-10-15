@@ -1,6 +1,6 @@
-import brandCoverImage from "../assets/brand/landing-cover.png";
-import ladiesPursesImage from "../assets/collections/ladies-purses.jpg";
-import womensWatchesImage from "../assets/collections/womens-watches.jpg";
+import brandCoverImage from "../assets/brand/landing-cover.webp";
+import ladiesPursesImage from "../assets/collections/ladies-purses.webp";
+import womensWatchesImage from "../assets/collections/womens-watches.webp";
 import { Link } from "react-router-dom";
 
 const collections = [
@@ -8,6 +8,8 @@ const collections = [
     name: "Men's Watches",
     description: "Refined timepieces for every defining moment.",
     image: brandCoverImage,
+    imageWidth: 1600,
+    imageHeight: 667,
     imageAlt: "Blyver watch with gold accents",
     imagePosition: "object-[10%_center]",
     to: "/men",
@@ -16,6 +18,8 @@ const collections = [
     name: "Women’s Watches",
     description: "Elegant details, designed to be worn every day.",
     image: womensWatchesImage,
+    imageWidth: 900,
+    imageHeight: 1350,
     imageAlt: "Woman wearing a gold watch",
     imagePosition: "object-center",
     to: "/women",
@@ -24,6 +28,8 @@ const collections = [
     name: "Wallets",
     description: "Modern leather essentials with lasting character.",
     image: brandCoverImage,
+    imageWidth: 1600,
+    imageHeight: 667,
     imageAlt: "Blyver black leather wallet",
     imagePosition: "object-[94%_center]",
     to: "/men",
@@ -32,6 +38,8 @@ const collections = [
     name: "Ladies’ Purses",
     description: "Sophisticated companions for life in motion.",
     image: ladiesPursesImage,
+    imageWidth: 900,
+    imageHeight: 1200,
     imageAlt: "Teal leather purse with gold details",
     imagePosition: "object-center",
     to: "/women",
@@ -61,6 +69,10 @@ function CollectionsPage() {
                 <img
                   src={collection.image}
                   alt={collection.imageAlt}
+                  width={collection.imageWidth}
+                  height={collection.imageHeight}
+                  loading="lazy"
+                  decoding="async"
                   className={`h-full w-full object-cover transition duration-700 group-hover:scale-105 ${collection.imagePosition}`}
                 />
               </div>
