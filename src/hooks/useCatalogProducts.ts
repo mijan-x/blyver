@@ -8,7 +8,10 @@ type CatalogProductsState = {
   products: Product[];
 };
 
-export function useCatalogProducts(gender: ProductGender) {
+export function useCatalogProducts(
+  gender: ProductGender,
+  categoryId?: string,
+) {
   const [state, setState] = useState<CatalogProductsState>({
     error: null,
     loading: true,
@@ -17,8 +20,9 @@ export function useCatalogProducts(gender: ProductGender) {
 
   useEffect(() => {
     let active = true;
+    setState((previous) => ({ ...previous, loading: true }));
 
-    getCatalogProducts({ gender })
+    getCatalogProducts({ categoryId, gender })
       .then((products) => {
         if (active) setState({ error: null, loading: false, products });
       })
@@ -37,7 +41,7 @@ export function useCatalogProducts(gender: ProductGender) {
     return () => {
       active = false;
     };
-  }, [gender]);
+  }, [gender, categoryId]);
 
   return state;
 }

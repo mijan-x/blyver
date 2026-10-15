@@ -1,5 +1,10 @@
 import { supabase } from "../lib/supabase";
-import type { CatalogFilters, Product, ProductGender } from "../types/catalog";
+import type {
+  CatalogFilters,
+  Category,
+  Product,
+  ProductGender,
+} from "../types/catalog";
 
 type ProductRow = {
   id: string;
@@ -144,6 +149,24 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
     .limit(1, { referencedTable: "product_images" });
   if (error) throw error;
   return ((data ?? []) as ProductRow[]).map(toProduct);
+}
+
+// Categories for the catalog chips: active categories for a gender (plus
+// any ungendered/unisex ones), ordered the way admins arrange them.
+export async function getCategories(
+  gender?: ProductGender,
+): Promise<Category[]> {
+  let query = supabase
+    .from("categories")
+    .select("id, name, slug, gender")
+    .eq("active", true)
+    .order("position", { ascending: true });
+
+  if (gender) query = query.or(`gender.eq.${gender},gender.is.null`);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
