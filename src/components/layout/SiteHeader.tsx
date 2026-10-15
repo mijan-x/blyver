@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Link, NavLink } from "react-router-dom";
 import logoImage from "../../assets/brand/blyver-logo-small.png";
 import { useAuth } from "../../features/auth/useAuth";
 import { cartUpdatedEvent, getCartItemCount } from "../../services/cartService";
+import {
+  getGuestCartCount,
+  mergeGuestCartIntoAccount,
+  subscribeToGuestCart,
+} from "../../services/guestCartService";
 import {
   getWishlistCount,
   wishlistUpdatedEvent,
@@ -35,6 +40,11 @@ function SiteHeader() {
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const { user } = useAuth();
+  const guestCartCount = useSyncExternalStore(
+    subscribeToGuestCart,
+    getGuestCartCount,
+    () => 0,
+  );
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -50,6 +60,11 @@ function SiteHeader() {
     return () => window.removeEventListener(cartUpdatedEvent, loadCartCount);
   }, [user]);
 
+  // A guest who signs in keeps what they put in their bag.
+  useEffect(() => {
+    if (user) mergeGuestCartIntoAccount(user.id).catch(() => undefined);
+  }, [user]);
+
   useEffect(() => {
     const loadWishlistCount = () => {
       if (!user) return setWishlistCount(0);
@@ -62,6 +77,8 @@ function SiteHeader() {
     return () =>
       window.removeEventListener(wishlistUpdatedEvent, loadWishlistCount);
   }, [user]);
+
+  const badgeCount = user ? cartCount : guestCartCount;
 
   return (
     <header className="sticky top-0 z-50 border-b border-blyver-ivory/10 bg-blyver-ink/95 text-blyver-ivory backdrop-blur">
@@ -116,12 +133,12 @@ function SiteHeader() {
               }
             >
               {link.label.toUpperCase()}
-              {link.to === "/cart" && cartCount > 0 && (
+              {link.to === "/cart" && badgeCount > 0 && (
                 <span
-                  aria-label={`${cartCount} items in cart`}
+                  aria-label={`${badgeCount} items in cart`}
                   className="absolute -right-3 -top-3 grid size-4 place-items-center rounded-full bg-blyver-champagne text-[8px] font-semibold tracking-normal text-blyver-ink"
                 >
-                  {cartCount > 99 ? "99+" : cartCount}
+                  {badgeCount > 99 ? "99+" : badgeCount}
                 </span>
               )}
               {link.to === "/wishlist" && wishlistCount > 0 && (
@@ -168,9 +185,9 @@ function SiteHeader() {
                 onClick={closeMenu}
               >
                 {link.label.toUpperCase()}
-                {link.to === "/cart" && cartCount > 0 && (
+                {link.to === "/cart" && badgeCount > 0 && (
                   <span className="ml-2 rounded-full bg-blyver-champagne px-2 py-0.5 text-[9px] font-semibold tracking-normal text-blyver-ink">
-                    {cartCount}
+                    {badgeCount}
                   </span>
                 )}
                 {link.to === "/wishlist" && wishlistCount > 0 && (

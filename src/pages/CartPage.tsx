@@ -2,32 +2,56 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
 import {
+  cartUpdatedEvent,
   getCartItems,
   removeCartItem,
   type CartLine,
   updateCartQuantity,
 } from "../services/cartService";
+import {
+  getGuestCartLines,
+  guestCartMaxQuantity,
+  setGuestCartQuantity,
+} from "../services/guestCartService";
 import { formatBdt } from "../utils/formatCurrency";
 function CartPage() {
-  const { user } = useAuth();
+  const { loading, user } = useAuth();
   const [items, setItems] = useState<CartLine[] | null>(null);
-  const load = async () => {
-    if (user) setItems(await getCartItems(user.id));
-  };
+  // Signed in: account cart. Not signed in: this browser's guest cart.
   useEffect(() => {
-    if (!user) return;
-    getCartItems(user.id)
-      .then(setItems)
-      .catch(() => setItems([]));
-  }, [user]);
+    if (loading) return;
+    let active = true;
+    const load = () => {
+      (user ? getCartItems(user.id) : getGuestCartLines())
+        .then((lines) => {
+          if (active) setItems(lines);
+        })
+        .catch(() => {
+          if (active) setItems([]);
+        });
+    };
+    load();
+    window.addEventListener(cartUpdatedEvent, load);
+    return () => {
+      active = false;
+      window.removeEventListener(cartUpdatedEvent, load);
+    };
+  }, [loading, user]);
   async function change(item: CartLine, quantity: number) {
+    // Both paths fire cartUpdatedEvent, which reloads the list above.
+    if (!user) {
+      setGuestCartQuantity(
+        item.id,
+        Math.min(quantity, item.product.stock_quantity, guestCartMaxQuantity),
+      );
+      return;
+    }
     if (quantity < 1) await removeCartItem(item.id);
     else
       await updateCartQuantity(
         item.id,
         Math.min(quantity, item.product.stock_quantity),
       );
-    await load();
   }
   const subtotal = (items ?? []).reduce(
     (sum, item) =>
@@ -108,6 +132,19 @@ function CartPage() {
               >
                 PROCEED TO CHECKOUT
               </Link>
+              {!user && (
+                <p className="mt-5 text-center text-xs text-blyver-ivory/60">
+                  No account needed.{" "}
+                  <Link
+                    to="/sign-in"
+                    state={{ from: "/cart" }}
+                    className="underline"
+                  >
+                    Sign in
+                  </Link>{" "}
+                  to keep your bag on every device.
+                </p>
+              )}
             </aside>
           </div>
         )}

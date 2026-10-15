@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import ProductReviews from "../components/product/ProductReviews";
 import { useAuth } from "../features/auth/useAuth";
 import { addCartItem } from "../services/cartService";
+import { addGuestCartItem } from "../services/guestCartService";
 import { getProductBySlug } from "../services/catalogService";
 import { isWishlisted, toggleWishlist } from "../services/wishlistService";
 import type { Product } from "../types/catalog";
@@ -37,9 +38,10 @@ function ProductPage() {
     setWishlisted(!wishlisted);
   }
   async function addToBag() {
-    if (!user || !product)
-      return setError("Please sign in to add this piece to your bag.");
-    const { error: cartError } = await addCartItem(user.id, product.id);
+    if (!product) return;
+    const { error: cartError } = user
+      ? await addCartItem(user.id, product.id)
+      : addGuestCartItem(product.id);
     if (cartError) return setError(cartError.message);
     navigate("/cart");
   }

@@ -52,7 +52,24 @@ supabase/
   - [x] `create_cod_order`: orders without a coupon work again (coupon id/code kept in plain variables)
   - [x] `site_settings`: RLS enabled, public read, admin-only write
   - [x] Applied to the live Supabase project `blyver` (2026-10-16, via SQL editor) and verified read-only
+- [ ] Phase 2C — Guest checkout (branch `feat/guest-checkout`, on top of 2A.1)
+  - [x] Migration `20261016140000_guest_checkout.sql` written and tested locally
+  - [x] `create_guest_cod_order(customer_address, items, coupon_code_input)` callable without login
+  - [x] Guest cart in browser storage; merges into the account cart on sign-in
+  - [x] Cart, checkout and order-success pages open to guests
+  - [ ] Applied to the live Supabase project
+  - [ ] Vercel preview tested (guest order, logged-in order, sign-in merge)
 - [ ] Phase 2B — Admin orders page (React) — not started
+
+### Guest checkout rules (enforced by `create_guest_cod_order`)
+
+- Valid Bangladesh mobile required (`01[3-9]XXXXXXXX`; `+880`/`880` and spaces/dashes accepted, stored as `01XXXXXXXXX` in `orders.guest_phone`).
+- 1–10 of each product, max 20 different products per order; duplicate lines are summed.
+- Max 3 open (`pending`/`confirmed`) guest orders per mobile number; an advisory lock makes simultaneous orders from one number wait for each other.
+- Prices, stock, coupon and delivery charge come from the database only.
+- Coupon per-customer limit for guests is counted by mobile number (across guest and logged-in orders with that phone).
+- Guest orders have `user_id = null`. Guests cannot read orders afterwards; admins see them like any order. Email is optional for guests.
+- Known gap: a logged-in user's coupon limit (old `create_cod_order`) counts by account only, so a coupon used once as a guest can be used once more after signing up.
 
 ### Order status transitions (enforced by `admin_update_order_status`)
 

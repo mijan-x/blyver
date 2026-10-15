@@ -1,12 +1,17 @@
 import { useState } from "react";
 import type { FormEvent as FormEventType } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
-import { createCodOrder } from "../services/checkoutService";
+import {
+  createCodOrder,
+  createGuestCodOrder,
+  type CheckoutAddress,
+} from "../services/checkoutService";
+import { clearGuestCart, getGuestCart } from "../services/guestCartService";
 const field =
   "mt-2 w-full border border-blyver-ink/20 bg-transparent px-4 py-3 outline-none focus:border-blyver-champagne";
 function CheckoutPage() {
-  const { user } = useAuth();
+  const { loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,19 +20,29 @@ function CheckoutPage() {
     setLoading(true);
     setError("");
     const form = new FormData(event.currentTarget);
+    const address: CheckoutAddress = {
+      area: String(form.get("area")),
+      district: String(form.get("district")),
+      division: String(form.get("division")),
+      email: String(form.get("email") ?? ""),
+      fullAddress: String(form.get("fullAddress")),
+      fullName: String(form.get("fullName")),
+      phone: String(form.get("phone")),
+    };
+    const couponCode = String(form.get("couponCode"));
     try {
-      const orderNumber = await createCodOrder(
-        {
-          area: String(form.get("area")),
-          district: String(form.get("district")),
-          division: String(form.get("division")),
-          email: String(form.get("email")),
-          fullAddress: String(form.get("fullAddress")),
-          fullName: String(form.get("fullName")),
-          phone: String(form.get("phone")),
-        },
-        String(form.get("couponCode")),
-      );
+      let orderNumber: string;
+      if (user) {
+        orderNumber = await createCodOrder(address, couponCode);
+      } else {
+        // Guest: send the browser cart; the database re-checks prices and stock.
+        orderNumber = await createGuestCodOrder(
+          address,
+          getGuestCart(),
+          couponCode,
+        );
+        clearGuestCart();
+      }
       navigate(`/order-success/${orderNumber}`, { replace: true });
     } catch (checkoutError) {
       setError(
@@ -46,6 +61,18 @@ function CheckoutPage() {
           CHECKOUT / CASH ON DELIVERY
         </p>
         <h1 className="mt-5 font-serif text-5xl">Delivery details.</h1>
+        {!authLoading && !user && (
+          <p className="mt-5 text-sm text-blyver-charcoal/70">
+            Ordering as a guest. Already have an account?{" "}
+            <Link
+              to="/sign-in"
+              state={{ from: "/checkout" }}
+              className="underline"
+            >
+              Sign in
+            </Link>
+          </p>
+        )}
         <div className="mt-10 grid gap-5 sm:grid-cols-2">
           <label className="block text-sm sm:col-span-2">
             Full name
@@ -53,12 +80,19 @@ function CheckoutPage() {
           </label>
           <label className="block text-sm">
             Mobile number
-            <input required type="tel" name="phone" className={field} />
-          </label>
-          <label className="block text-sm">
-            Email
             <input
               required
+              type="tel"
+              name="phone"
+              placeholder="01XXXXXXXXX"
+              autoComplete="tel"
+              className={field}
+            />
+          </label>
+          <label className="block text-sm">
+            {user ? "Email" : "Email (optional)"}
+            <input
+              required={Boolean(user)}
               type="email"
               defaultValue={user?.email}
               name="email"
@@ -99,7 +133,7 @@ function CheckoutPage() {
           </p>
         )}
         <button
-          disabled={loading}
+          disabled={loading || authLoading}
           className="mt-8 w-full bg-blyver-ink px-5 py-4 text-[11px] tracking-[0.16em] text-blyver-ivory disabled:opacity-60"
         >
           {loading ? "PLACING ORDER…" : "PLACE CASH ON DELIVERY ORDER"}
