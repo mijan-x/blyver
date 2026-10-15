@@ -27,6 +27,7 @@ const AdminHomepagePage = lazy(() => import("./pages/AdminHomepagePage"));
 const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const AdminProductsPage = lazy(() => import("./pages/AdminProductsPage"));
+const AdminOrdersPage = lazy(() => import("./pages/AdminOrdersPage"));
 const AddressesPage = lazy(() => import("./pages/AddressesPage"));
 
 function PageOutlet() {
@@ -86,6 +87,14 @@ function App() {
               element={
                 <RequireAdmin>
                   <AdminProductsPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/orders"
+              element={
+                <RequireAdmin>
+                  <AdminOrdersPage />
                 </RequireAdmin>
               }
             />

@@ -52,15 +52,22 @@ supabase/
   - [x] `create_cod_order`: orders without a coupon work again (coupon id/code kept in plain variables)
   - [x] `site_settings`: RLS enabled, public read, admin-only write
   - [x] Applied to the live Supabase project `blyver` (2026-10-16, via SQL editor) and verified read-only
-- [ ] Phase 2C — Guest checkout (branch `feat/guest-checkout`, on top of 2A.1)
+- [x] Phase 2C — Guest checkout (merged to `main` via `feat/guest-checkout`, on top of 2A.1)
   - [x] Migration `20261016140000_guest_checkout.sql` written and tested locally
   - [x] `create_guest_cod_order(customer_address, items, coupon_code_input)` callable without login
   - [x] Guest cart in browser storage; merges into the account cart on sign-in
   - [x] Cart, checkout and order-success pages open to guests
   - [x] Applied to the live Supabase project by Claude via the Supabase connector (migrations `guest_checkout_function` + `guest_checkout_nullable_user`) and verified with a rolled-back test order
   - [x] Vercel preview build passes (`tsc -b && vite build`)
-  - [ ] Vercel preview tested by hand (guest order, logged-in order, sign-in merge)
-- [ ] Phase 2B — Admin orders page (React) — not started
+  - [x] Smoke-tested in the browser (add to bag, badge, checkout form shown as guest) — no real order placed yet
+  - [ ] A real guest order placed and confirmed end-to-end on production
+- [ ] Phase 2B — Admin orders page (branch `feat/admin-orders-page`, on top of 2A)
+  - [x] `/admin/orders`: list every order (newest first), filter by status, search by order number/name/phone
+  - [x] Expand an order to see items, delivery address, coupon and totals
+  - [x] Change status through buttons that only show the transitions `admin_update_order_status` allows
+  - [x] Linked from the admin dashboard ("Total orders" tile and a new Orders card)
+  - [ ] Vercel preview tested by hand
+  - [ ] Merged to `main`
 
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
