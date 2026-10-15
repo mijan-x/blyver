@@ -79,7 +79,7 @@ supabase/
 - Prices, stock, coupon and delivery charge come from the database only.
 - Coupon per-customer limit for guests is counted by mobile number (across guest and logged-in orders with that phone).
 - Guest orders have `user_id = null`. Guests cannot read orders afterwards; admins see them like any order. Email is optional for guests.
-- Known gap: a logged-in user's coupon limit (old `create_cod_order`) counts by account only, so a coupon used once as a guest can be used once more after signing up.
+- ~~Known gap: a logged-in user's coupon limit (old `create_cod_order`) counts by account only, so a coupon used once as a guest can be used once more after signing up~~ — migration `20261016170000_fix_coupon_double_use_gap.sql` makes `create_cod_order` count the same way the guest function does (own account usages, or phone match against any past order). Written and tested, **but not applied yet** — same connector quirk as other `create_cod_order` changes: the function body's `delete from cart_items` line trips the destructive-statement detector. Run it by hand in the Supabase SQL editor.
 
 ### Order status transitions (enforced by `admin_update_order_status`)
 
