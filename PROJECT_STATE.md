@@ -114,7 +114,7 @@ supabase/
 ## Notes
 
 - `getCatalogProducts` now returns at most 24 products and omits description, variants, specifications and collection ids. Use `getProductBySlug` for full product data.
-- `wishlistService` calls `getCatalogProducts()` and filters client-side, so wishlists can miss items beyond the first 24 products. Fix by fetching wishlist products by id.
+- ~~`wishlistService` calls `getCatalogProducts()` and filters client-side, so wishlists can miss items beyond the first 24 products~~ — fixed (`fix/wishlist-beyond-24`). Added `getProductsByIds` in `catalogService` (same lean list fields, no 24-item limit, no `.limit()` at all) and pointed `getWishlistProducts` at it instead.
 - Supabase: there is only one project (`blyver`, ref `ckogspznzsatqjothmxm`), and it is live. No separate dev project yet. Migrations are applied by hand in the SQL editor, so `supabase_migrations` history is empty.
 - Only admin: `blyver.admin@gmail.com`. New sign-ups get the `customer` role automatically; only an admin can change roles.
 - ~~Open security gap: customers can edit their own reviews' `visible` flag (could un-hide a review an admin hid)~~ — fixed (migration `20261016150000_lock_review_moderation_fields.sql`, live). A `before update` trigger resets `visible`, `product_id` and `user_id` back to their stored value for non-admins, since a plain RLS `using`/`with check` clause can only restrict which rows a customer can touch, not which columns. Verified live with a rolled-back test: a customer's update can no longer change those three fields (even mixed into the same statement as a benign field edit, which still goes through), and an admin's own moderation updates are unaffected.
