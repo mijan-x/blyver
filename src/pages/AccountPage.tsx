@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
+import { useIsAdmin } from "../features/auth/useIsAdmin";
 import { supabase } from "../lib/supabase";
 function AccountPage() {
   const { user } = useAuth();
+  const isAdmin = useIsAdmin();
   const navigate = useNavigate();
   const name =
     typeof user?.user_metadata.full_name === "string"
@@ -63,6 +65,25 @@ function AccountPage() {
             </p>
           </Link>
         </div>
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className="mt-12 flex items-center justify-between gap-6 border border-blyver-champagne/50 bg-blyver-ink p-8 text-blyver-ivory transition hover:bg-blyver-ink/90"
+          >
+            <div>
+              <p className="text-[11px] tracking-[0.2em] text-blyver-champagne">
+                ADMIN
+              </p>
+              <h2 className="mt-3 font-serif text-2xl">Store dashboard</h2>
+              <p className="mt-3 text-sm leading-7 text-blyver-ivory/70">
+                Orders, products, homepage content, and store settings.
+              </p>
+            </div>
+            <span aria-hidden className="text-2xl">
+              →
+            </span>
+          </Link>
+        )}
       </section>
     </main>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { Link, NavLink } from "react-router-dom";
 import logoImage from "../../assets/brand/blyver-logo-small.png";
 import { useAuth } from "../../features/auth/useAuth";
+import { useIsAdmin } from "../../features/auth/useIsAdmin";
 import { cartUpdatedEvent, getCartItemCount } from "../../services/cartService";
 import {
   getGuestCartCount,
@@ -22,7 +23,7 @@ const primaryLinks = [
   { label: "Contact", to: "/contact" },
 ];
 
-const utilityLinks = [
+const baseUtilityLinks = [
   { label: "Search", to: "/search" },
   { label: "Wishlist", to: "/wishlist" },
   { label: "Cart", to: "/cart" },
@@ -40,6 +41,7 @@ function SiteHeader() {
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const { user } = useAuth();
+  const isAdmin = useIsAdmin();
   const guestCartCount = useSyncExternalStore(
     subscribeToGuestCart,
     getGuestCartCount,
@@ -79,6 +81,9 @@ function SiteHeader() {
   }, [user]);
 
   const badgeCount = user ? cartCount : guestCartCount;
+  const utilityLinks = isAdmin
+    ? [...baseUtilityLinks, { label: "Admin", to: "/admin" }]
+    : baseUtilityLinks;
 
   return (
     <header className="sticky top-0 z-50 border-b border-blyver-ivory/10 bg-blyver-ink/95 text-blyver-ivory backdrop-blur">
