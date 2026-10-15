@@ -9,19 +9,23 @@ export function useIsAdmin() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!user) return setIsAdmin(false);
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
     let active = true;
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .maybeSingle();
         if (active) setIsAdmin(data?.role === "admin");
-      })
-      .catch(() => {
+      } catch {
         if (active) setIsAdmin(false);
-      });
+      }
+    })();
     return () => {
       active = false;
     };
