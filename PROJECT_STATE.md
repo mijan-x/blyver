@@ -105,7 +105,7 @@ supabase/
 - ~~Admin cannot see all orders~~ — fixed (Phase 2A, live).
 - ~~`create_cod_order` fails for every order without a coupon~~ (`record "v_coupon" is not assigned yet`) — fixed (Phase 2A.1, live).
 - ~~`site_settings` has RLS disabled~~ (anyone with the anon key could change delivery charge, phone, WhatsApp) — fixed (Phase 2A.1, live).
-- An old one-argument `create_cod_order(jsonb)` overload (no coupons, no free delivery) still exists alongside the current two-argument version.
+- An old one-argument `create_cod_order(jsonb)` overload (no coupons, no free delivery) still exists alongside the current two-argument version — migration `20261016160000_drop_old_create_cod_order_overload.sql` drops it, written and ready, **but not applied yet**: `DROP FUNCTION` gets silently cancelled by the Supabase connector the same way other destructive statements do, and there's no non-destructive way to split a drop. Run it by hand in the Supabase SQL editor to finish this one off (just the one line: `drop function if exists public.create_cod_order(jsonb);`).
 - Removing an ordered product fails (foreign key constraint).
 - Search, About and Contact pages are placeholders.
 - Category chips are not clickable.
