@@ -61,13 +61,15 @@ supabase/
   - [x] Vercel preview build passes (`tsc -b && vite build`)
   - [x] Smoke-tested in the browser (add to bag, badge, checkout form shown as guest) — no real order placed yet
   - [ ] A real guest order placed and confirmed end-to-end on production
-- [ ] Phase 2B — Admin orders page (branch `feat/admin-orders-page`, on top of 2A)
+- [x] Phase 2B — Admin orders page (merged to `main` via `feat/admin-orders-page`, on top of 2A)
   - [x] `/admin/orders`: list every order (newest first), filter by status, search by order number/name/phone
   - [x] Expand an order to see items, delivery address, coupon and totals
   - [x] Change status through buttons that only show the transitions `admin_update_order_status` allows
   - [x] Linked from the admin dashboard ("Total orders" tile and a new Orders card)
-  - [ ] Vercel preview tested by hand
-  - [ ] Merged to `main`
+- [x] Phase 2B.1 — Admin dashboard was unreachable from the signed-in UI (branch `fix/admin-nav-link`)
+  - [x] `useIsAdmin()` hook (same role check as `RequireAdmin`)
+  - [x] `/account` shows a "Store dashboard" card to admins, linking to `/admin`
+  - [x] Header utility nav shows an "Admin" link to admins, desktop and mobile
 
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
@@ -81,16 +83,16 @@ supabase/
 
 ### Order status transitions (enforced by `admin_update_order_status`)
 
-| From | Allowed to |
-| --- | --- |
-| pending | confirmed, cancelled |
-| confirmed | processing, cancelled |
-| processing | shipped, cancelled |
-| shipped | out_for_delivery, delivered, returned |
-| out_for_delivery | delivered, returned |
-| delivered | returned |
-| cancelled | — (final) |
-| returned | — (final) |
+| From             | Allowed to                            |
+| ---------------- | ------------------------------------- |
+| pending          | confirmed, cancelled                  |
+| confirmed        | processing, cancelled                 |
+| processing       | shipped, cancelled                    |
+| shipped          | out_for_delivery, delivered, returned |
+| out_for_delivery | delivered, returned                   |
+| delivered        | returned                              |
+| cancelled        | — (final)                             |
+| returned         | — (final)                             |
 
 - Same-status changes are rejected (a double click gets an error, not a second update).
 - Moving to `cancelled` or `returned` adds every order item's quantity back to `products.stock_quantity` and sets `orders.stock_restored_at`. If that column is already set, stock is not restored again.
