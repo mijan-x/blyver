@@ -59,29 +59,11 @@ function App() {
                 </RequireAuth>
               }
             />
-            <Route
-              path="/cart"
-              element={
-                <RequireAuth>
-                  <CartPage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/checkout"
-              element={
-                <RequireAuth>
-                  <CheckoutPage />
-                </RequireAuth>
-              }
-            />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route
               path="/order-success/:orderNumber"
-              element={
-                <RequireAuth>
-                  <OrderSuccessPage />
-                </RequireAuth>
-              }
+              element={<OrderSuccessPage />}
             />
             <Route
               path="/orders"

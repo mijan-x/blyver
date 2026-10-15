@@ -29,3 +29,27 @@ export async function createCodOrder(
   notifyCartUpdated();
   return data as string;
 }
+export async function createGuestCodOrder(
+  address: CheckoutAddress,
+  items: Array<{ productId: string; quantity: number }>,
+  couponCode: string,
+) {
+  const { data, error } = await supabase.rpc("create_guest_cod_order", {
+    coupon_code_input: couponCode || null,
+    customer_address: {
+      area: address.area,
+      district: address.district,
+      division: address.division,
+      email: address.email,
+      full_address: address.fullAddress,
+      full_name: address.fullName,
+      phone: address.phone,
+    },
+    items: items.map((item) => ({
+      product_id: item.productId,
+      quantity: item.quantity,
+    })),
+  });
+  if (error) throw error;
+  return data as string;
+}

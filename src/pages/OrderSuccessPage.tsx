@@ -1,6 +1,8 @@
 import { Link, useParams } from "react-router-dom";
+import { useAuth } from "../features/auth/useAuth";
 function OrderSuccessPage() {
   const { orderNumber } = useParams();
+  const { user } = useAuth();
   return (
     <main className="grid min-h-[60vh] place-items-center bg-blyver-ivory px-6 text-center text-blyver-ink">
       <section>
@@ -14,11 +16,17 @@ function OrderSuccessPage() {
           Your Cash on Delivery order number is <strong>{orderNumber}</strong>.
           We will confirm it shortly.
         </p>
+        {!user && (
+          <p className="mt-3 text-sm leading-7 text-blyver-charcoal/70">
+            Please keep this number. We will call your mobile to confirm
+            delivery.
+          </p>
+        )}
         <Link
-          to="/account"
+          to={user ? "/account" : "/collections"}
           className="mt-9 inline-block text-[11px] tracking-[0.16em] underline"
         >
-          VIEW YOUR ACCOUNT
+          {user ? "VIEW YOUR ACCOUNT" : "CONTINUE SHOPPING"}
         </Link>
       </section>
     </main>
