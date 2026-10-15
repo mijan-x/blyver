@@ -60,13 +60,13 @@ supabase/
   - [x] Applied to the live Supabase project by Claude via the Supabase connector (migrations `guest_checkout_function` + `guest_checkout_nullable_user`) and verified with a rolled-back test order
   - [x] Vercel preview build passes (`tsc -b && vite build`)
   - [x] Smoke-tested in the browser (add to bag, badge, checkout form shown as guest) — no real order placed yet
-  - [ ] A real guest order placed and confirmed end-to-end on production
+  - [x] A real guest order placed and confirmed end-to-end on production (2026-10-16, order `BLV-20261015-68D166`: placed via the browser on blyver.vercel.app as a signed-out guest, verified in the database — `user_id` null, `guest_phone` set, correct item/price/total — then cancelled through `admin_update_order_status` impersonating the admin role, which restored stock as expected; cancelled afterward so it doesn't sit in the live orders queue as a fake pending order)
 - [x] Phase 2B — Admin orders page (merged to `main` via `feat/admin-orders-page`, on top of 2A)
   - [x] `/admin/orders`: list every order (newest first), filter by status, search by order number/name/phone
   - [x] Expand an order to see items, delivery address, coupon and totals
   - [x] Change status through buttons that only show the transitions `admin_update_order_status` allows
   - [x] Linked from the admin dashboard ("Total orders" tile and a new Orders card)
-- [x] Phase 2B.1 — Admin dashboard was unreachable from the signed-in UI (branch `fix/admin-nav-link`)
+- [x] Phase 2B.1 — Admin dashboard was unreachable from the signed-in UI (merged to `main` via `fix/admin-nav-link`)
   - [x] `useIsAdmin()` hook (same role check as `RequireAdmin`)
   - [x] `/account` shows a "Store dashboard" card to admins, linking to `/admin`
   - [x] Header utility nav shows an "Admin" link to admins, desktop and mobile
