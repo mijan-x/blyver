@@ -85,6 +85,16 @@ function AdminPage() {
                   </p>
                 </Link>
                 <Link
+                  to="/admin/collections"
+                  className="bg-blyver-ivory p-7 transition hover:bg-blyver-ivory/60"
+                >
+                  <h2 className="font-serif text-2xl">Collections</h2>
+                  <p className="mt-3 text-sm leading-7 text-blyver-charcoal/65">
+                    Edit what shows on the /collections page -- names,
+                    descriptions, feature images, order, and visibility.
+                  </p>
+                </Link>
+                <Link
                   to="/admin/homepage"
                   className="bg-blyver-ivory p-7 transition hover:bg-blyver-ivory/60"
                 >

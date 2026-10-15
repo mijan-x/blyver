@@ -23,6 +23,7 @@ const ProductPage = lazy(() => import("./pages/ProductPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const OrderSuccessPage = lazy(() => import("./pages/OrderSuccessPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
+const AdminCollectionsPage = lazy(() => import("./pages/AdminCollectionsPage"));
 const AdminHomepagePage = lazy(() => import("./pages/AdminHomepagePage"));
 const AdminSettingsPage = lazy(() => import("./pages/AdminSettingsPage"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
@@ -95,6 +96,14 @@ function App() {
               element={
                 <RequireAdmin>
                   <AdminOrdersPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/collections"
+              element={
+                <RequireAdmin>
+                  <AdminCollectionsPage />
                 </RequireAdmin>
               }
             />

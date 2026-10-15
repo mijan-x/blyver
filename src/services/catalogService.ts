@@ -2,6 +2,7 @@ import { supabase } from "../lib/supabase";
 import type {
   CatalogFilters,
   Category,
+  Collection,
   Product,
   ProductGender,
 } from "../types/catalog";
@@ -167,6 +168,30 @@ export async function getCategories(
   const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
+}
+
+// Active collections for the /collections page, admin-editable from
+// /admin/collections -- name, description, image and link are all stored
+// data, not hardcoded in the page.
+export async function getCollections(): Promise<Collection[]> {
+  const { data, error } = await supabase
+    .from("collections")
+    .select("id, name, slug, description, image_path, link_path, position")
+    .eq("active", true)
+    .order("position", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    description: row.description ?? "",
+    id: row.id,
+    imageUrl: row.image_path
+      ? supabase.storage.from("product-images").getPublicUrl(row.image_path)
+          .data.publicUrl
+      : null,
+    linkPath: row.link_path,
+    name: row.name,
+    position: row.position,
+    slug: row.slug,
+  }));
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
