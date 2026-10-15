@@ -8,7 +8,7 @@ Stack: Vite + React 19 + TypeScript + Tailwind v4 + React Router 7 + Supabase, d
 ```
 index.html              App shell, favicon link
 vercel.json             SPA rewrite: all routes -> /index.html
-public/                 Static files (favicon.png, favicon.svg, robots.txt, sitemap.xml)
+public/                 Static files (favicon-b.png, robots.txt, sitemap.xml)
 src/
   App.tsx               Router; HomePage eager, all other pages lazy-loaded
   assets/brand/         Logo (full + 128px small), landing cover (png + webp)
@@ -107,9 +107,12 @@ supabase/
 - ~~`site_settings` has RLS disabled~~ (anyone with the anon key could change delivery charge, phone, WhatsApp) — fixed (Phase 2A.1, live).
 - ~~An old one-argument `create_cod_order(jsonb)` overload (no coupons, no free delivery) still exists alongside the current two-argument version~~ — fixed. Migration `20261016160000_drop_old_create_cod_order_overload.sql` applied live by hand in the Supabase SQL editor (2026-10-16); confirmed only the two-argument version remains.
 - ~~Removing an ordered product fails (foreign key constraint)~~ — fixed (`fix/remove-ordered-product`): products with order history are archived (soft-deleted) instead of hard-deleted.
+- ~~Category chips are not clickable~~ — fixed (`feat/clickable-category-chips`, PR #15). Chips are now real buttons backed by `getCategories(gender)` (reads the `categories` table) with an "All" option; clicking filters the grid via `getCatalogProducts`' existing `categoryId` filter. Note: `/women` currently has zero category rows in the live DB, so no chip row renders there yet — not a bug, just no data.
+- ~~Tab icon shown as the Vite scaffold's purple bolt for some visitors~~ — fixed (PR #16 removed the orphaned `public/favicon.svg`; PR #17 renamed `favicon.png` → `favicon-b.png` and updated `index.html`'s `<link>` to cache-bust browsers that had the old icon cached — no customer action needed, the new URL is fetched fresh automatically).
+- ~~No way for admin to change the `/collections` page's names/descriptions/images~~ — fixed (PR #18, `feat/admin-collections`). The page was entirely hardcoded in source; now backed by the `collections` table (which already existed but was unused) via `getCollections()`, with full CRUD at `/admin/collections` (name, description, "Discover" link, display order, visibility, image upload to the `product-images` bucket under `collections/`). Migration `20261016180000_collections_admin.sql` added a `link_path` column and seeded the 4 previously-hardcoded collections as real rows (image_path left null — admin needs to upload real images via `/admin/collections` to replace the bundled-image fallback `CollectionsPage` falls back to for those 4 known slugs).
 - Search, About and Contact pages are placeholders.
-- Category chips are not clickable.
 - Variants exist in the database but are unused by the UI.
+- The homepage's own section images ("FOR HIM"/"FOR HER"/"ELEGANT CARRY" banners in `HomePage.tsx`) are still hardcoded bundled images, separate from the `/collections` page fixed above — not wired to the `collections` table. Revisit if admin wants those editable too.
 
 ## Notes
 
@@ -119,3 +122,4 @@ supabase/
 - Only admin: `blyver.admin@gmail.com`. New sign-ups get the `customer` role automatically; only an admin can change roles.
 - ~~Open security gap: customers can edit their own reviews' `visible` flag (could un-hide a review an admin hid)~~ — fixed (migration `20261016150000_lock_review_moderation_fields.sql`, live). A `before update` trigger resets `visible`, `product_id` and `user_id` back to their stored value for non-admins, since a plain RLS `using`/`with check` clause can only restrict which rows a customer can touch, not which columns. Verified live with a rolled-back test: a customer's update can no longer change those three fields (even mixed into the same statement as a benign field edit, which still goes through), and an admin's own moderation updates are unaffected.
 - Supabase connector: Claude can apply migrations directly, but the connector silently cancels any SQL it sees as destructive (`DROP POLICY`, `TRUNCATE`, etc.) because its confirmation prompt can't be shown here. `DROP NOT NULL` and plain `CREATE`/`ALTER`/`COMMENT` go through. Keep migrations free of those statements, or split them out and run the destructive part in the SQL editor.
+- Next planned work (not started): a visual theme change for the site. Colors are Tailwind v4 CSS-first tokens defined in `src/index.css` (`--color-blyver-ink`, `-ivory`, `-charcoal`, `-champagne`, `-muted`), not a `tailwind.config.js` (there isn't one). A theme pass means changing those `--color-blyver-*` values in `src/index.css`, plus checking pages/components for any hardcoded colors (e.g. stray `text-red-800`, `bg-black`) that bypass the token set.
