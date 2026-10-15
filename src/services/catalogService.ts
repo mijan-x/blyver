@@ -7,7 +7,7 @@ type ProductRow = {
   sku: string;
   name: string;
   short_description: string;
-  description: string;
+  description?: string;
   gender: ProductGender;
   category_id: string;
   original_price: number | string;
@@ -61,7 +61,7 @@ function toProduct(row: ProductRow): Product {
       (collection) => collection.collection_id,
     ),
     createdAt: row.created_at,
-    description: row.description,
+    description: row.description ?? "",
     featured: row.featured,
     gender: row.gender,
     id: row.id,
@@ -98,14 +98,24 @@ function toProduct(row: ProductRow): Product {
 const productSelect =
   "id, slug, sku, name, short_description, description, gender, category_id, original_price, sale_price, stock_quantity, low_stock_threshold, featured, new_arrival, best_seller, status, created_at, updated_at, product_images(id, storage_path, alt_text, position), product_variants(id, sku, name, option_values, price_adjustment, stock_quantity, active), product_specifications(label, value, position), product_collections(collection_id)";
 
+// Lightweight select for list/grid views: no description, variants,
+// specifications or collections, and only the first image.
+const productListSelect =
+  "id, slug, sku, name, short_description, gender, category_id, original_price, sale_price, stock_quantity, low_stock_threshold, featured, new_arrival, best_seller, status, created_at, updated_at, product_images(id, storage_path, alt_text, position)";
+
+const catalogListLimit = 24;
+
 export async function getCatalogProducts(
   filters: CatalogFilters = {},
 ): Promise<Product[]> {
   let query = supabase
     .from("products")
-    .select(productSelect)
+    .select(productListSelect)
     .eq("status", "active")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(catalogListLimit)
+    .order("position", { ascending: true, referencedTable: "product_images" })
+    .limit(1, { referencedTable: "product_images" });
 
   if (filters.gender) query = query.eq("gender", filters.gender);
   if (filters.categoryId) query = query.eq("category_id", filters.categoryId);

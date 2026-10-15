@@ -6,9 +6,9 @@ import {
   type HomepageContent,
 } from "../services/contentService";
 import Seo from "../components/seo/Seo";
-import coverImage from "../assets/brand/landing-cover.png";
-import ladiesPursesImage from "../assets/collections/ladies-purses.jpg";
-import womensWatchesImage from "../assets/collections/womens-watches.jpg";
+import coverImage from "../assets/brand/landing-cover.webp";
+import ladiesPursesImage from "../assets/collections/ladies-purses.webp";
+import womensWatchesImage from "../assets/collections/womens-watches.webp";
 
 const principles = [
   {
@@ -56,6 +56,10 @@ function HomePage() {
           <img
             src={coverImage}
             alt="Blyver watches and leather accessories"
+            width={1600}
+            height={667}
+            fetchPriority="high"
+            decoding="async"
             className="h-full w-full object-contain"
           />
         </div>
@@ -118,6 +122,10 @@ function HomePage() {
           <img
             src={coverImage}
             alt="Blyver men's watches and wallets"
+            width={1600}
+            height={667}
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover object-[20%_center] transition duration-700 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
@@ -140,6 +148,10 @@ function HomePage() {
           <img
             src={womensWatchesImage}
             alt="Blyver women's watch"
+            width={900}
+            height={1350}
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
@@ -191,6 +203,10 @@ function HomePage() {
           <img
             src={ladiesPursesImage}
             alt="Blyver teal leather purse"
+            width={900}
+            height={1200}
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
           />
         </div>
