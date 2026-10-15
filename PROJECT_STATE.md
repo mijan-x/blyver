@@ -23,7 +23,8 @@ src/
   types/                Shared TypeScript types
   utils/                Helpers (currency formatting, ...)
 supabase/
-  migrations/           SQL migrations (catalog, profiles, wishlists, carts, orders, coupons, reviews, homepage content, settings, addresses)
+  migrations/           SQL migrations (catalog, profiles, wishlists, carts, orders, coupons, reviews, homepage content, settings, addresses, admin orders)
+  checks/               Verification and rollback SQL for migrations (run by hand in the SQL editor; not migrations)
   seeds/                Seed data
 ```
 
@@ -38,11 +39,46 @@ supabase/
   - [x] vercel.json SPA rewrite
   - [x] Favicon fixed
   - [x] Lazy-loaded routes (except HomePage)
-- [ ] Phase 2 — not started
+- [x] Phase 2A — Admin orders: database + security (branch `feat/admin-orders-db`)
+  - [x] Migration `20261016120000_admin_orders.sql` written and tested on a local Postgres 16
+  - [x] Admins can read all `orders`, `order_items`, `coupon_usages` (read-only policies)
+  - [x] `admin_update_order_status(order_id, new_status)`: admin-only, validated transitions, stock restored once
+  - [x] `orders.stock_restored_at` guard column
+  - [x] Indexes: orders (created_at), (status, created_at), (user_id, created_at); order_items (order_id), (product_id)
+  - [x] Checks + rollback SQL in `supabase/checks/`
+  - [x] Applied to the live Supabase project `blyver` (2026-10-16, via SQL editor) and verified read-only
+- [x] Phase 2A.1 — Bug fixes (branch `fix/checkout-and-settings`, on top of 2A)
+  - [x] Migration `20261016130000_fix_checkout_and_site_settings.sql` written and tested locally
+  - [x] `create_cod_order`: orders without a coupon work again (coupon id/code kept in plain variables)
+  - [x] `site_settings`: RLS enabled, public read, admin-only write
+  - [x] Applied to the live Supabase project `blyver` (2026-10-16, via SQL editor) and verified read-only
+- [ ] Phase 2B — Admin orders page (React) — not started
+
+### Order status transitions (enforced by `admin_update_order_status`)
+
+| From | Allowed to |
+| --- | --- |
+| pending | confirmed, cancelled |
+| confirmed | processing, cancelled |
+| processing | shipped, cancelled |
+| shipped | out_for_delivery, delivered, returned |
+| out_for_delivery | delivered, returned |
+| delivered | returned |
+| cancelled | — (final) |
+| returned | — (final) |
+
+- Same-status changes are rejected (a double click gets an error, not a second update).
+- Moving to `cancelled` or `returned` adds every order item's quantity back to `products.stock_quantity` and sets `orders.stock_restored_at`. If that column is already set, stock is not restored again.
+- Returned items go straight back into sellable stock. If damaged returns become common, add a "restock?" flag later.
+- The order row is locked while updating, so two admins cancelling at once restore stock only once (tested).
+- Admins have no direct UPDATE/DELETE on orders; all status changes go through the function.
 
 ## Known bugs
 
-- Admin cannot see all orders (no admin RLS policy on `orders`).
+- ~~Admin cannot see all orders~~ — fixed (Phase 2A, live).
+- ~~`create_cod_order` fails for every order without a coupon~~ (`record "v_coupon" is not assigned yet`) — fixed (Phase 2A.1, live).
+- ~~`site_settings` has RLS disabled~~ (anyone with the anon key could change delivery charge, phone, WhatsApp) — fixed (Phase 2A.1, live).
+- An old one-argument `create_cod_order(jsonb)` overload (no coupons, no free delivery) still exists alongside the current two-argument version.
 - Removing an ordered product fails (foreign key constraint).
 - Search, About and Contact pages are placeholders.
 - Category chips are not clickable.
@@ -52,3 +88,6 @@ supabase/
 
 - `getCatalogProducts` now returns at most 24 products and omits description, variants, specifications and collection ids. Use `getProductBySlug` for full product data.
 - `wishlistService` calls `getCatalogProducts()` and filters client-side, so wishlists can miss items beyond the first 24 products. Fix by fetching wishlist products by id.
+- Supabase: there is only one project (`blyver`, ref `ckogspznzsatqjothmxm`), and it is live. No separate dev project yet. Migrations are applied by hand in the SQL editor, so `supabase_migrations` history is empty.
+- Only admin: `blyver.admin@gmail.com`. New sign-ups get the `customer` role automatically; only an admin can change roles.
+- Open security gap: customers can edit their own reviews' `visible` flag (could un-hide a review an admin hid). Not fixed yet.
