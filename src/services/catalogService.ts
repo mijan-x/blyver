@@ -130,6 +130,22 @@ export async function getCatalogProducts(
   return ((data ?? []) as ProductRow[]).map(toProduct);
 }
 
+// Fetches an exact set of products by id, regardless of the catalog list's
+// limit — used by the wishlist, which needs every wishlisted product, not
+// just whichever ones happen to be among the newest 24.
+export async function getProductsByIds(ids: string[]): Promise<Product[]> {
+  if (!ids.length) return [];
+  const { data, error } = await supabase
+    .from("products")
+    .select(productListSelect)
+    .eq("status", "active")
+    .in("id", ids)
+    .order("position", { ascending: true, referencedTable: "product_images" })
+    .limit(1, { referencedTable: "product_images" });
+  if (error) throw error;
+  return ((data ?? []) as ProductRow[]).map(toProduct);
+}
+
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const { data, error } = await supabase
     .from("products")

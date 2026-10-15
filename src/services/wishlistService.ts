@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-import { getCatalogProducts } from "./catalogService";
+import { getProductsByIds } from "./catalogService";
 import type { Product } from "../types/catalog";
 export const wishlistUpdatedEvent = "blyver:wishlist-updated";
 export function notifyWishlistUpdated() {
@@ -12,10 +12,7 @@ export async function getWishlistProducts(userId: string): Promise<Product[]> {
     .eq("user_id", userId);
   if (error) throw error;
   const ids = (data ?? []).map((item) => item.product_id);
-  if (!ids.length) return [];
-  return (await getCatalogProducts()).filter((product) =>
-    ids.includes(product.id),
-  );
+  return getProductsByIds(ids);
 }
 export async function getWishlistCount(userId: string) {
   const { count, error } = await supabase
