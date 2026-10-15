@@ -124,8 +124,12 @@ function AdminProductsPage() {
     if (!window.confirm(`Remove ${product.name}? This cannot be undone.`))
       return;
     try {
-      await deleteAdminProduct(product);
-      setMessage("Product removed.");
+      const result = await deleteAdminProduct(product);
+      setMessage(
+        result.archived
+          ? `${product.name} has past orders, so it was hidden from the store instead of deleted (its order history needs to stay intact). Set Visibility back to Visible if you need to unhide it.`
+          : "Product removed.",
+      );
       await load();
     } catch (error) {
       setMessage(
