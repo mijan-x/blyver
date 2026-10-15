@@ -68,6 +68,16 @@ export type Category = {
   gender: ProductGender | null;
 };
 
+export type Collection = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  imageUrl: string | null;
+  linkPath: string | null;
+  position: number;
+};
+
 export type CatalogFilters = {
   categoryId?: string;
   collectionId?: string;
