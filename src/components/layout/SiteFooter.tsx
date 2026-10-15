@@ -1,16 +1,16 @@
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom";
 
 const shopLinks = [
-  { label: 'Men', to: '/men' },
-  { label: 'Women', to: '/women' },
-  { label: 'Collections', to: '/collections' },
-]
+  { label: "Men", to: "/men" },
+  { label: "Women", to: "/women" },
+  { label: "Collections", to: "/collections" },
+];
 
 const helpLinks = [
-  { label: 'Contact us', to: '/contact' },
-  { label: 'Shipping & returns', to: '/contact' },
-  { label: 'My account', to: '/account' },
-]
+  { label: "Contact us", to: "/contact" },
+  { label: "Shipping & returns", to: "/contact" },
+  { label: "My account", to: "/account" },
+];
 
 function SiteFooter() {
   return (
@@ -21,23 +21,43 @@ function SiteFooter() {
           <p className="mt-5 max-w-xs font-serif text-2xl leading-tight text-blyver-ivory/90">
             Where elegance meets everyday.
           </p>
-          <p className="mt-5 text-sm leading-6 text-blyver-muted">Curated watches, wallets, and purses for life’s defining moments.</p>
+          <p className="mt-5 text-sm leading-6 text-blyver-muted">
+            Curated watches, wallets, and purses for life’s defining moments.
+          </p>
         </div>
 
         <div>
-          <h2 className="text-[11px] tracking-[0.2em] text-blyver-champagne">SHOP</h2>
+          <h2 className="text-[11px] tracking-[0.2em] text-blyver-champagne">
+            SHOP
+          </h2>
           <ul className="mt-5 space-y-3 text-sm text-blyver-ivory/75">
             {shopLinks.map((link) => (
-              <li key={link.to}><Link to={link.to} className="transition hover:text-blyver-champagne">{link.label}</Link></li>
+              <li key={link.to}>
+                <Link
+                  to={link.to}
+                  className="transition hover:text-blyver-champagne"
+                >
+                  {link.label}
+                </Link>
+              </li>
             ))}
           </ul>
         </div>
 
         <div>
-          <h2 className="text-[11px] tracking-[0.2em] text-blyver-champagne">CUSTOMER CARE</h2>
+          <h2 className="text-[11px] tracking-[0.2em] text-blyver-champagne">
+            CUSTOMER CARE
+          </h2>
           <ul className="mt-5 space-y-3 text-sm text-blyver-ivory/75">
             {helpLinks.map((link) => (
-              <li key={link.label}><Link to={link.to} className="transition hover:text-blyver-champagne">{link.label}</Link></li>
+              <li key={link.label}>
+                <Link
+                  to={link.to}
+                  className="transition hover:text-blyver-champagne"
+                >
+                  {link.label}
+                </Link>
+              </li>
             ))}
           </ul>
         </div>
@@ -49,7 +69,7 @@ function SiteFooter() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
 
-export default SiteFooter
+export default SiteFooter;
