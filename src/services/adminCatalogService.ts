@@ -87,17 +87,53 @@ export async function saveAdminProduct(input: ProductInput, id?: string) {
   if (response.error) throw response.error;
   return response.data.id as string;
 }
-export async function deleteAdminProduct(product: AdminProduct) {
+// A product that has ever been ordered can't be hard-deleted: order_items
+// keeps a product_id foreign key (with no cascade) so past orders still show
+// what was bought. For those, "remove" archives the product instead (hides
+// it from the store, same as toggling Visibility to Hidden in the form) so
+// admins get a working remove button rather than a database error.
+export async function deleteAdminProduct(
+  product: AdminProduct,
+): Promise<{ archived: boolean }> {
+  const { count, error: countError } = await supabase
+    .from("order_items")
+    .select("id", { count: "exact", head: true })
+    .eq("product_id", product.id);
+  if (countError) throw countError;
+
+  if (count) {
+    const { error } = await supabase
+      .from("products")
+      .update({ status: "inactive" })
+      .eq("id", product.id);
+    if (error) throw error;
+    return { archived: true };
+  }
+
   const images = product.product_images ?? [];
   const { error } = await supabase
     .from("products")
     .delete()
     .eq("id", product.id);
-  if (error) throw error;
+  if (error) {
+    // Safety net for a race (an order placed between the check above and
+    // this delete): fall back to archiving instead of surfacing a raw
+    // foreign-key-violation error.
+    if (error.code === "23503") {
+      const { error: archiveError } = await supabase
+        .from("products")
+        .update({ status: "inactive" })
+        .eq("id", product.id);
+      if (archiveError) throw archiveError;
+      return { archived: true };
+    }
+    throw error;
+  }
   if (images.length)
     await supabase.storage
       .from("product-images")
       .remove(images.map((image) => image.storage_path));
+  return { archived: false };
 }
 export async function uploadAdminProductImage(
   productId: string,
@@ -116,17 +152,15 @@ export async function uploadAdminProductImage(
     .eq("product_id", productId)
     .eq("position", 0)
     .maybeSingle();
-  const { error: imageError } = await supabase
-    .from("product_images")
-    .upsert(
-      {
-        product_id: productId,
-        storage_path: path,
-        alt_text: productName,
-        position: 0,
-      },
-      { onConflict: "product_id,position" },
-    );
+  const { error: imageError } = await supabase.from("product_images").upsert(
+    {
+      product_id: productId,
+      storage_path: path,
+      alt_text: productName,
+      position: 0,
+    },
+    { onConflict: "product_id,position" },
+  );
   if (imageError) throw imageError;
   if (existing?.storage_path && existing.storage_path !== path)
     await supabase.storage
