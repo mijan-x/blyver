@@ -1,25 +1,23 @@
+import { useState } from "react";
 import CatalogEmptyState from "../components/catalog/CatalogEmptyState";
 import CatalogLoadingGrid from "../components/catalog/CatalogLoadingGrid";
 import ProductGrid from "../components/product/ProductGrid";
 import { useCatalogProducts } from "../hooks/useCatalogProducts";
+import { useCategories } from "../hooks/useCategories";
 import type { ProductGender } from "../types/catalog";
 
 type CatalogPageProps = {
   eyebrow: string;
   title: string;
   description: string;
-  categories: string[];
   gender: ProductGender;
 };
 
-function CatalogPage({
-  eyebrow,
-  title,
-  description,
-  categories,
-  gender,
-}: CatalogPageProps) {
-  const { error, loading, products } = useCatalogProducts(gender);
+function CatalogPage({ eyebrow, title, description, gender }: CatalogPageProps) {
+  const categories = useCategories(gender);
+  const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
+  const { error, loading, products } = useCatalogProducts(gender, categoryId);
+
   return (
     <main className="bg-blyver-ivory px-6 py-14 text-blyver-ink sm:px-10 sm:py-18">
       <div className="mx-auto max-w-7xl">
@@ -34,11 +32,37 @@ function CatalogPage({
             {description}
           </p>
         </div>
-        <div className="mt-12 flex flex-wrap gap-x-7 gap-y-3 border-y border-blyver-ink/10 py-5 text-[11px] tracking-[0.16em] text-blyver-charcoal/80">
-          {categories.map((category) => (
-            <span key={category}>{category.toUpperCase()}</span>
-          ))}
-        </div>
+        {categories.length > 0 && (
+          <div className="mt-12 flex flex-wrap gap-x-7 gap-y-3 border-y border-blyver-ink/10 py-5 text-[11px] tracking-[0.16em]">
+            <button
+              type="button"
+              onClick={() => setCategoryId(undefined)}
+              aria-pressed={categoryId === undefined}
+              className={
+                categoryId === undefined
+                  ? "text-blyver-ink underline underline-offset-4"
+                  : "text-blyver-charcoal/70 transition hover:text-blyver-ink"
+              }
+            >
+              ALL
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => setCategoryId(category.id)}
+                aria-pressed={categoryId === category.id}
+                className={
+                  categoryId === category.id
+                    ? "text-blyver-ink underline underline-offset-4"
+                    : "text-blyver-charcoal/70 transition hover:text-blyver-ink"
+                }
+              >
+                {category.name.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="mt-12">
           {loading && <CatalogLoadingGrid />}
           {!loading && error && (

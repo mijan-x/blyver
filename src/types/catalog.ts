@@ -61,6 +61,13 @@ export type Product = {
   updatedAt: string;
 };
 
+export type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  gender: ProductGender | null;
+};
+
 export type CatalogFilters = {
   categoryId?: string;
   collectionId?: string;
