@@ -39,16 +39,41 @@ function AdminPage() {
           metrics && (
             <>
               <div className="mt-12 grid gap-px bg-blyver-ink/10 sm:grid-cols-2 lg:grid-cols-3">
-                {labels.map(([key, label]) => (
-                  <section key={key} className="bg-blyver-ivory p-7">
-                    <p className="text-[11px] tracking-[0.14em] text-blyver-muted">
-                      {label.toUpperCase()}
-                    </p>
-                    <p className="mt-5 font-serif text-5xl">{metrics[key]}</p>
-                  </section>
-                ))}
+                {labels.map(([key, label]) => {
+                  const content = (
+                    <>
+                      <p className="text-[11px] tracking-[0.14em] text-blyver-muted">
+                        {label.toUpperCase()}
+                      </p>
+                      <p className="mt-5 font-serif text-5xl">{metrics[key]}</p>
+                    </>
+                  );
+                  return key === "orders" ? (
+                    <Link
+                      key={key}
+                      to="/admin/orders"
+                      className="bg-blyver-ivory p-7 transition hover:bg-blyver-ivory/60"
+                    >
+                      {content}
+                    </Link>
+                  ) : (
+                    <section key={key} className="bg-blyver-ivory p-7">
+                      {content}
+                    </section>
+                  );
+                })}
               </div>
               <div className="mt-12 grid gap-px bg-blyver-ink/10 md:grid-cols-3">
+                <Link
+                  to="/admin/orders"
+                  className="bg-blyver-ivory p-7 transition hover:bg-blyver-ivory/60"
+                >
+                  <h2 className="font-serif text-2xl">Orders</h2>
+                  <p className="mt-3 text-sm leading-7 text-blyver-charcoal/65">
+                    View every order, filter by status, and update delivery
+                    status.
+                  </p>
+                </Link>
                 <Link
                   to="/admin/products"
                   className="bg-blyver-ivory p-7 transition hover:bg-blyver-ivory/60"
