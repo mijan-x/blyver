@@ -57,8 +57,9 @@ supabase/
   - [x] `create_guest_cod_order(customer_address, items, coupon_code_input)` callable without login
   - [x] Guest cart in browser storage; merges into the account cart on sign-in
   - [x] Cart, checkout and order-success pages open to guests
-  - [ ] Applied to the live Supabase project
-  - [ ] Vercel preview tested (guest order, logged-in order, sign-in merge)
+  - [x] Applied to the live Supabase project by Claude via the Supabase connector (migrations `guest_checkout_function` + `guest_checkout_nullable_user`) and verified with a rolled-back test order
+  - [x] Vercel preview build passes (`tsc -b && vite build`)
+  - [ ] Vercel preview tested by hand (guest order, logged-in order, sign-in merge)
 - [ ] Phase 2B — Admin orders page (React) — not started
 
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
@@ -108,3 +109,4 @@ supabase/
 - Supabase: there is only one project (`blyver`, ref `ckogspznzsatqjothmxm`), and it is live. No separate dev project yet. Migrations are applied by hand in the SQL editor, so `supabase_migrations` history is empty.
 - Only admin: `blyver.admin@gmail.com`. New sign-ups get the `customer` role automatically; only an admin can change roles.
 - Open security gap: customers can edit their own reviews' `visible` flag (could un-hide a review an admin hid). Not fixed yet.
+- Supabase connector: Claude can apply migrations directly, but the connector silently cancels any SQL it sees as destructive (`DROP POLICY`, `TRUNCATE`, etc.) because its confirmation prompt can't be shown here. `DROP NOT NULL` and plain `CREATE`/`ALTER`/`COMMENT` go through. Keep migrations free of those statements, or split them out and run the destructive part in the SQL editor.

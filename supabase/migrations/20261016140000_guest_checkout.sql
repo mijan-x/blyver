@@ -49,14 +49,15 @@ create or replace function public.create_guest_cod_order(
 returns text
 language plpgsql
 security definer
--- pg_temp last: temp tables can never shadow the public tables used here.
+-- pg_temp last: a temp table can never shadow the public tables used here.
 set search_path = public, pg_temp
 as $$
 declare
   v_phone text;
-  v_lines record;
+  v_ids uuid[];        -- product ids, sorted (fixed lock order)
+  v_qtys integer[];    -- matching quantities
+  v_i integer;
   v_product record;
-  v_line_count integer;
   v_subtotal numeric := 0;
   v_delivery numeric;
   v_threshold numeric;
@@ -94,25 +95,28 @@ begin
     raise exception 'Your cart is empty';
   end if;
 
+  -- Same product twice is summed into one line.
   begin
-    create temporary table if not exists pg_temp.guest_order_lines (
-      product_id uuid primary key,
-      quantity integer not null
-    ) on commit drop;
-    truncate pg_temp.guest_order_lines;
-    insert into pg_temp.guest_order_lines (product_id, quantity)
-    select (e ->> 'product_id')::uuid, sum((e ->> 'quantity')::integer)
-    from jsonb_array_elements(items) e
-    group by 1;
-  exception when invalid_text_representation or numeric_value_out_of_range or not_null_violation then
+    select array_agg(l.product_id order by l.product_id),
+           array_agg(l.quantity order by l.product_id)
+    into v_ids, v_qtys
+    from (
+      select (e ->> 'product_id')::uuid as product_id,
+             sum((e ->> 'quantity')::integer)::integer as quantity
+      from jsonb_array_elements(items) e
+      group by 1
+    ) l;
+  exception when invalid_text_representation or numeric_value_out_of_range then
     raise exception 'Your cart has an invalid item. Please refresh your cart.';
   end;
 
-  select count(*) into v_line_count from pg_temp.guest_order_lines;
-  if v_line_count > 20 then
+  if exists (select 1 from unnest(v_ids) x where x is null) then
+    raise exception 'Your cart has an invalid item. Please refresh your cart.';
+  end if;
+  if array_length(v_ids, 1) > 20 then
     raise exception 'Too many different items in one order (maximum 20)';
   end if;
-  if exists (select 1 from pg_temp.guest_order_lines where quantity < 1 or quantity > 10) then
+  if exists (select 1 from unnest(v_qtys) q where q is null or q < 1 or q > 10) then
     raise exception 'You can order between 1 and 10 of each item';
   end if;
 
@@ -127,15 +131,15 @@ begin
   end if;
 
   -- 4. Lock products (fixed order, avoids deadlocks) and check stock
-  for v_lines in select * from pg_temp.guest_order_lines order by product_id loop
+  for v_i in 1 .. array_length(v_ids, 1) loop
     select * into v_product
     from public.products
-    where id = v_lines.product_id and status = 'active'
+    where id = v_ids[v_i] and status = 'active'
     for update;
-    if not found or v_product.stock_quantity < v_lines.quantity then
+    if not found or v_product.stock_quantity < v_qtys[v_i] then
       raise exception 'One or more items are no longer available';
     end if;
-    v_subtotal := v_subtotal + coalesce(v_product.sale_price, v_product.original_price) * v_lines.quantity;
+    v_subtotal := v_subtotal + coalesce(v_product.sale_price, v_product.original_price) * v_qtys[v_i];
   end loop;
 
   -- 5. Coupon (same rules as create_cod_order; per-customer limit by phone)
@@ -207,18 +211,18 @@ begin
     values (v_coupon_id, auth.uid(), v_order);
   end if;
 
-  for v_lines in select * from pg_temp.guest_order_lines order by product_id loop
-    select * into v_product from public.products where id = v_lines.product_id;
+  for v_i in 1 .. array_length(v_ids, 1) loop
+    select * into v_product from public.products where id = v_ids[v_i];
     insert into public.order_items (
       order_id, product_id, product_name, sku, unit_price, quantity, line_total
     ) values (
       v_order, v_product.id, v_product.name, v_product.sku,
       coalesce(v_product.sale_price, v_product.original_price),
-      v_lines.quantity,
-      coalesce(v_product.sale_price, v_product.original_price) * v_lines.quantity
+      v_qtys[v_i],
+      coalesce(v_product.sale_price, v_product.original_price) * v_qtys[v_i]
     );
     update public.products
-    set stock_quantity = stock_quantity - v_lines.quantity
+    set stock_quantity = stock_quantity - v_qtys[v_i]
     where id = v_product.id;
   end loop;
 
