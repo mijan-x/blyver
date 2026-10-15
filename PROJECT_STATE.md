@@ -48,6 +48,12 @@ supabase/
   - [x] Checks + rollback SQL in `supabase/checks/`
   - [ ] Applied and checked on the development Supabase project
   - [ ] Applied to production
+- [ ] Phase 2A.1 — Bug fixes (branch `fix/checkout-and-settings`, on top of 2A)
+  - [x] Migration `20261016130000_fix_checkout_and_site_settings.sql` written and tested locally
+  - [x] `create_cod_order`: orders without a coupon work again (coupon id/code kept in plain variables)
+  - [x] `site_settings`: RLS enabled, public read, admin-only write
+  - [ ] Applied and checked on the development Supabase project
+  - [ ] Applied to production
 - [ ] Phase 2B — Admin orders page (React) — not started
 
 ### Order status transitions (enforced by `admin_update_order_status`)
@@ -72,8 +78,8 @@ supabase/
 ## Known bugs
 
 - ~~Admin cannot see all orders~~ — fixed by Phase 2A migration once applied.
-- **`create_cod_order` fails for every order without a coupon** (`record "v_coupon" is not assigned yet`). Reproduced locally against the repo migrations. Not fixed yet (needs approval).
-- **`site_settings` has RLS disabled**: anyone with the anon key can change delivery charge, phone, WhatsApp, etc. The "Admins manage site settings" policy does nothing until RLS is enabled. Not fixed yet.
+- ~~`create_cod_order` fails for every order without a coupon~~ (`record "v_coupon" is not assigned yet`) — fixed by Phase 2A.1 migration once applied.
+- ~~`site_settings` has RLS disabled~~ (anyone with the anon key could change delivery charge, phone, WhatsApp) — fixed by Phase 2A.1 migration once applied.
 - An old one-argument `create_cod_order(jsonb)` overload (no coupons, no free delivery) still exists alongside the current two-argument version.
 - Removing an ordered product fails (foreign key constraint).
 - Search, About and Contact pages are placeholders.
