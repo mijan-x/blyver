@@ -1,10 +1,18 @@
 import { supabase } from "../lib/supabase";
 import type { ProductGender, ProductStatus } from "../types/catalog";
 
+export const MAX_PRODUCT_IMAGES = 9;
+
 export type AdminCategory = {
   id: string;
   name: string;
   gender: ProductGender | null;
+};
+export type AdminProductImage = {
+  id: string;
+  storage_path: string;
+  alt_text: string;
+  position: number;
 };
 export type AdminProduct = {
   id: string;
@@ -23,11 +31,7 @@ export type AdminProduct = {
   new_arrival: boolean;
   best_seller: boolean;
   status: ProductStatus;
-  product_images: Array<{
-    storage_path: string;
-    alt_text: string;
-    position: number;
-  }> | null;
+  product_images: AdminProductImage[] | null;
 };
 export type ProductInput = Omit<AdminProduct, "id" | "slug" | "product_images">;
 
@@ -60,7 +64,7 @@ export async function getAdminProducts() {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, slug, sku, category_id, gender, short_description, description, original_price, sale_price, stock_quantity, low_stock_threshold, featured, new_arrival, best_seller, status, product_images(storage_path, alt_text, position)",
+      "id, name, slug, sku, category_id, gender, short_description, description, original_price, sale_price, stock_quantity, low_stock_threshold, featured, new_arrival, best_seller, status, product_images(id, storage_path, alt_text, position)",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -87,38 +91,23 @@ export async function saveAdminProduct(input: ProductInput, id?: string) {
   if (response.error) throw response.error;
   return response.data.id as string;
 }
-// A product that has ever been ordered can't be hard-deleted: order_items
-// keeps a product_id foreign key (with no cascade) so past orders still show
-// what was bought. For those, "remove" archives the product instead (hides
-// it from the store, same as toggling Visibility to Hidden in the form) so
-// admins get a working remove button rather than a database error.
+// order_items keeps its own snapshot of everything a past order needs to
+// display (product_name, sku, unit_price, quantity, line_total), so it
+// never has to look the product back up -- deleting a product that has
+// been ordered doesn't break any order history. order_items.product_id is
+// ON DELETE SET NULL, so the delete below detaches those rows instead of
+// being blocked by the foreign key.
 export async function deleteAdminProduct(
   product: AdminProduct,
 ): Promise<{ archived: boolean }> {
-  const { count, error: countError } = await supabase
-    .from("order_items")
-    .select("id", { count: "exact", head: true })
-    .eq("product_id", product.id);
-  if (countError) throw countError;
-
-  if (count) {
-    const { error } = await supabase
-      .from("products")
-      .update({ status: "inactive" })
-      .eq("id", product.id);
-    if (error) throw error;
-    return { archived: true };
-  }
-
   const images = product.product_images ?? [];
   const { error } = await supabase
     .from("products")
     .delete()
     .eq("id", product.id);
   if (error) {
-    // Safety net for a race (an order placed between the check above and
-    // this delete): fall back to archiving instead of surfacing a raw
-    // foreign-key-violation error.
+    // Safety net for any foreign key this doesn't know about yet: archive
+    // (hide from the store) instead of surfacing a raw database error.
     if (error.code === "23503") {
       const { error: archiveError } = await supabase
         .from("products")
@@ -135,35 +124,73 @@ export async function deleteAdminProduct(
       .remove(images.map((image) => image.storage_path));
   return { archived: false };
 }
-export async function uploadAdminProductImage(
+// A product can have 1-9 images (product_images.position is unique per
+// product, 0-based). This uploads one or more files into the next free
+// position slots, leaving any existing images untouched.
+export async function uploadAdminProductImages(
   productId: string,
   productName: string,
-  file: File,
+  files: File[],
 ) {
-  const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const path = `products/${slugify(productName)}/${crypto.randomUUID()}.${extension}`;
-  const { error: uploadError } = await supabase.storage
-    .from("product-images")
-    .upload(path, file, { upsert: false });
-  if (uploadError) throw uploadError;
-  const { data: existing } = await supabase
+  if (!files.length) return;
+  const { data: existingRows, error: existingError } = await supabase
     .from("product_images")
-    .select("storage_path")
-    .eq("product_id", productId)
-    .eq("position", 0)
-    .maybeSingle();
-  const { error: imageError } = await supabase.from("product_images").upsert(
-    {
+    .select("position")
+    .eq("product_id", productId);
+  if (existingError) throw existingError;
+  const usedPositions = new Set(
+    (existingRows ?? []).map((row) => row.position),
+  );
+  const availableSlots = MAX_PRODUCT_IMAGES - usedPositions.size;
+  if (files.length > availableSlots) {
+    throw new Error(
+      availableSlots <= 0
+        ? `This product already has the maximum of ${MAX_PRODUCT_IMAGES} images. Remove one before adding another.`
+        : `Only ${availableSlots} more image${availableSlots === 1 ? "" : "s"} can be added (max ${MAX_PRODUCT_IMAGES} per product).`,
+    );
+  }
+  let nextPosition = 0;
+  for (const file of files) {
+    while (usedPositions.has(nextPosition)) nextPosition += 1;
+    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `products/${slugify(productName)}/${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, { upsert: false });
+    if (uploadError) throw uploadError;
+    const { error: imageError } = await supabase.from("product_images").insert({
       product_id: productId,
       storage_path: path,
       alt_text: productName,
-      position: 0,
-    },
-    { onConflict: "product_id,position" },
-  );
-  if (imageError) throw imageError;
-  if (existing?.storage_path && existing.storage_path !== path)
-    await supabase.storage
-      .from("product-images")
-      .remove([existing.storage_path]);
+      position: nextPosition,
+    });
+    if (imageError) {
+      // Don't leave an orphaned file in storage if the DB insert failed.
+      await supabase.storage.from("product-images").remove([path]);
+      throw imageError;
+    }
+    usedPositions.add(nextPosition);
+  }
+}
+// A product needs at least one image, so this refuses to remove the last
+// one -- the admin has to add a replacement first.
+export async function removeAdminProductImage(
+  productId: string,
+  image: AdminProductImage,
+) {
+  const { count, error: countError } = await supabase
+    .from("product_images")
+    .select("id", { count: "exact", head: true })
+    .eq("product_id", productId);
+  if (countError) throw countError;
+  if ((count ?? 0) <= 1)
+    throw new Error(
+      "A product needs at least one image -- add a replacement before removing this one.",
+    );
+  const { error } = await supabase
+    .from("product_images")
+    .delete()
+    .eq("id", image.id);
+  if (error) throw error;
+  await supabase.storage.from("product-images").remove([image.storage_path]);
 }

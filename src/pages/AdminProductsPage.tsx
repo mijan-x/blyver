@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
   createAdminCategory,
   deleteAdminProduct,
   getAdminCategories,
   getAdminProducts,
+  MAX_PRODUCT_IMAGES,
+  removeAdminProductImage,
   saveAdminProduct,
-  uploadAdminProductImage,
+  uploadAdminProductImages,
   type AdminCategory,
   type AdminProduct,
+  type AdminProductImage,
   type ProductInput,
 } from "../services/adminCatalogService";
 import type { ProductGender } from "../types/catalog";
@@ -49,9 +52,23 @@ function AdminProductsPage() {
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [editing, setEditing] = useState<AdminProduct | null>(null);
   const [form, setForm] = useState<ProductInput>(emptyProduct());
-  const [image, setImage] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const { toast, notifySuccess, notifyError, dismiss } = useAdminToast();
   const [newCategory, setNewCategory] = useState("");
+  const existingImages = useMemo(
+    () =>
+      [...(editing?.product_images ?? [])].sort(
+        (a, b) => a.position - b.position,
+      ),
+    [editing],
+  );
+  const imagePreviews = useMemo(
+    () => images.map((file) => URL.createObjectURL(file)),
+    [images],
+  );
+  useEffect(() => {
+    return () => imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+  }, [imagePreviews]);
   const load = useCallback(
     () =>
       Promise.all([getAdminCategories(), getAdminProducts()])
@@ -80,13 +97,13 @@ function AdminProductsPage() {
   ) => setForm((current) => ({ ...current, [key]: value }));
   function startNew() {
     setEditing(null);
-    setImage(null);
+    setImages([]);
     setForm(emptyProduct(categories[0]?.id));
     scrollToTop();
   }
   function startEdit(product: AdminProduct) {
     setEditing(product);
-    setImage(null);
+    setImages([]);
     setForm({
       name: product.name,
       sku: product.sku,
@@ -108,27 +125,58 @@ function AdminProductsPage() {
     // admin actually sees the form populate with the product's data.
     scrollToTop();
   }
+  function handleImagesSelected(fileList: FileList | null) {
+    const files = Array.from(fileList ?? []);
+    if (!files.length) {
+      setImages([]);
+      return;
+    }
+    const allowed = MAX_PRODUCT_IMAGES - existingImages.length;
+    if (files.length > allowed) {
+      notifyError(
+        allowed <= 0
+          ? `This product already has the maximum of ${MAX_PRODUCT_IMAGES} images — remove one first.`
+          : `Only the first ${allowed} image${allowed === 1 ? "" : "s"} were kept (max ${MAX_PRODUCT_IMAGES} per product).`,
+      );
+    }
+    setImages(files.slice(0, Math.max(allowed, 0)));
+  }
+  async function removeExistingImage(productImage: AdminProductImage) {
+    if (!editing) return;
+    if (!window.confirm("Remove this image?")) return;
+    try {
+      await removeAdminProductImage(editing.id, productImage);
+      const reloaded = await load();
+      const updated = reloaded?.find((product) => product.id === editing.id);
+      if (updated) setEditing(updated);
+      notifySuccess("Image removed.");
+    } catch (error) {
+      notifyError(
+        error instanceof Error ? error.message : "Image could not be removed.",
+      );
+    }
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const isNewProduct = !editing;
     if (
       isNewProduct &&
-      !image &&
+      !images.length &&
       !window.confirm(
-        "No image selected — add this product without a photo? You can attach one afterwards; this product will keep editing open so you can add it right away.",
+        "No images selected — add this product without photos? You can attach some afterwards; this product will keep editing open so you can add them right away.",
       )
     )
       return;
     try {
       const id = await saveAdminProduct(form, editing?.id);
-      if (image) await uploadAdminProductImage(id, form.name, image);
+      if (images.length) await uploadAdminProductImages(id, form.name, images);
       const reloaded = await load();
       if (isNewProduct) {
         const created = reloaded?.find((product) => product.id === id);
         if (created) {
           startEdit(created);
           notifySuccess(
-            image
+            images.length
               ? "Product added with image."
               : "Product added — attach an image below whenever you're ready.",
           );
@@ -169,7 +217,7 @@ function AdminProductsPage() {
       const result = await deleteAdminProduct(product);
       notifySuccess(
         result.archived
-          ? `${product.name} has past orders, so it was hidden from the store instead of deleted (its order history needs to stay intact). Set Visibility back to Visible if you need to unhide it.`
+          ? `${product.name} couldn't be fully deleted, so it was hidden from the store instead. Set Visibility back to Visible if you need to unhide it.`
           : "Product removed.",
       );
       await load();
@@ -350,34 +398,68 @@ function AdminProductsPage() {
               />
             </label>
             <label className="block text-sm">
-              Product image
+              Product images (1-{MAX_PRODUCT_IMAGES})
               <input
                 accept="image/*"
                 type="file"
-                onChange={(event) => setImage(event.target.files?.[0] ?? null)}
+                multiple
+                onChange={(event) =>
+                  handleImagesSelected(event.target.files)
+                }
                 className="mt-2 block w-full text-sm"
               />
             </label>
-            {image ? (
-              <p className="text-xs text-blyver-charcoal/70">
-                Selected: {image.name} — will upload when you save.
-              </p>
-            ) : (
-              editing?.product_images?.[0]?.storage_path && (
-                <div className="flex items-center gap-3">
-                  <img
-                    src={
-                      imageUrl(editing.product_images[0].storage_path) ??
-                      undefined
-                    }
-                    alt=""
-                    className="h-16 w-16 object-cover"
-                  />
-                  <p className="text-xs text-blyver-charcoal/70">
-                    Current image. Choose a file above to replace it.
-                  </p>
+            {images.length > 0 && (
+              <div>
+                <p className="text-xs text-blyver-charcoal/70">
+                  {images.length} new image{images.length > 1 ? "s" : ""}{" "}
+                  selected — will upload when you save.
+                </p>
+                <div className="mt-2 grid grid-cols-5 gap-2">
+                  {imagePreviews.map((src) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt=""
+                      className="aspect-square w-full object-cover"
+                    />
+                  ))}
                 </div>
-              )
+              </div>
+            )}
+            {existingImages.length > 0 && (
+              <div>
+                <p className="text-xs text-blyver-charcoal/70">
+                  Current images ({existingImages.length}/
+                  {MAX_PRODUCT_IMAGES}). At least one must remain.
+                </p>
+                <div className="mt-2 grid grid-cols-5 gap-2">
+                  {existingImages.map((productImage) => (
+                    <div key={productImage.id} className="relative">
+                      <img
+                        src={
+                          imageUrl(productImage.storage_path) ?? undefined
+                        }
+                        alt=""
+                        className="aspect-square w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeExistingImage(productImage)}
+                        disabled={existingImages.length <= 1}
+                        title={
+                          existingImages.length <= 1
+                            ? "A product needs at least one image"
+                            : "Remove this image"
+                        }
+                        className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center bg-blyver-ink text-[10px] text-blyver-ivory disabled:opacity-30"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
             <div className="flex flex-wrap gap-4 text-sm">
               <label>

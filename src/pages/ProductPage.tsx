@@ -15,11 +15,15 @@ function ProductPage() {
   const [product, setProduct] = useState<Product | null>();
   const [wishlisted, setWishlisted] = useState(false);
   const [error, setError] = useState("");
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   useEffect(() => {
     getProductBySlug(slug)
       .then(setProduct)
       .catch(() => setProduct(null));
   }, [slug]);
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [product?.id]);
   useEffect(() => {
     if (user && product)
       isWishlisted(user.id, product.id)
@@ -65,20 +69,46 @@ function ProductPage() {
         </div>
       </main>
     );
-  const image = [...product.images].sort((a, b) => a.position - b.position)[0];
+  const images = [...product.images].sort((a, b) => a.position - b.position);
+  const image = images[activeImageIndex] ?? images[0];
   return (
     <main className="bg-blyver-ivory px-6 py-10 text-blyver-ink sm:px-10 sm:py-14">
       <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2 lg:gap-16">
-        <section className="aspect-square bg-blyver-charcoal/10">
-          {image ? (
-            <img
-              src={image.url}
-              alt={image.altText}
-              className="size-full object-cover"
-            />
-          ) : (
-            <div className="grid size-full place-items-center text-[11px] tracking-[0.16em] text-blyver-muted">
-              IMAGE COMING SOON
+        <section>
+          <div className="aspect-square bg-blyver-charcoal/10">
+            {image ? (
+              <img
+                src={image.url}
+                alt={image.altText}
+                className="size-full object-cover"
+              />
+            ) : (
+              <div className="grid size-full place-items-center text-[11px] tracking-[0.16em] text-blyver-muted">
+                IMAGE COMING SOON
+              </div>
+            )}
+          </div>
+          {images.length > 1 && (
+            <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6">
+              {images.map((thumb, index) => (
+                <button
+                  key={thumb.id}
+                  type="button"
+                  onClick={() => setActiveImageIndex(index)}
+                  aria-label={`Show image ${index + 1}`}
+                  className={`aspect-square bg-blyver-charcoal/10 ${
+                    index === activeImageIndex
+                      ? "ring-2 ring-blyver-champagne"
+                      : "opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={thumb.url}
+                    alt=""
+                    className="size-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           )}
         </section>
