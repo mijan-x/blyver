@@ -9,6 +9,12 @@ import {
   type CollectionInput,
 } from "../services/adminCollectionsService";
 import { supabase } from "../lib/supabase";
+import AdminToast from "../components/admin/AdminToast";
+import { useAdminToast } from "../hooks/useAdminToast";
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 const emptyCollection = (position: number): CollectionInput => ({
   name: "",
@@ -30,14 +36,14 @@ function AdminCollectionsPage() {
   const [editing, setEditing] = useState<AdminCollection | null>(null);
   const [form, setForm] = useState<CollectionInput>(emptyCollection(1));
   const [image, setImage] = useState<File | null>(null);
-  const [message, setMessage] = useState("");
+  const { toast, notifySuccess, notifyError, dismiss } = useAdminToast();
 
   const load = useCallback(
     () =>
       getAdminCollections()
         .then(setCollections)
-        .catch((error: Error) => setMessage(error.message)),
-    [],
+        .catch((error: Error) => notifyError(error.message)),
+    [notifyError],
   );
   useEffect(() => {
     void load();
@@ -52,7 +58,7 @@ function AdminCollectionsPage() {
     setEditing(null);
     setImage(null);
     setForm(emptyCollection(collections.length + 1));
-    setMessage("");
+    scrollToTop();
   }
   function startEdit(collection: AdminCollection) {
     setEditing(collection);
@@ -64,7 +70,9 @@ function AdminCollectionsPage() {
       position: collection.position,
       active: collection.active,
     });
-    setMessage("");
+    // The collection list this is called from can be far below the form
+    // on narrower screens, so scroll up to where the form just changed.
+    scrollToTop();
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -72,11 +80,11 @@ function AdminCollectionsPage() {
     try {
       const id = await saveAdminCollection(form, editing?.id);
       if (image) await uploadAdminCollectionImage(id, form.name, image);
-      setMessage(editing ? "Collection updated." : "Collection added.");
+      notifySuccess(editing ? "Collection updated." : "Collection added.");
       startNew();
       await load();
     } catch (error) {
-      setMessage(
+      notifyError(
         error instanceof Error
           ? error.message
           : "Collection could not be saved.",
@@ -91,10 +99,10 @@ function AdminCollectionsPage() {
       return;
     try {
       await deleteAdminCollection(collection);
-      setMessage("Collection removed.");
+      notifySuccess("Collection removed.");
       await load();
     } catch (error) {
-      setMessage(
+      notifyError(
         error instanceof Error
           ? error.message
           : "Collection could not be removed.",
@@ -104,6 +112,7 @@ function AdminCollectionsPage() {
 
   return (
     <main className="bg-blyver-ivory px-6 py-16 text-blyver-ink sm:px-10 sm:py-20">
+      <AdminToast toast={toast} onDismiss={dismiss} />
       <div className="mx-auto grid max-w-7xl gap-14 xl:grid-cols-[420px_1fr]">
         <section>
           <p className="text-[11px] tracking-[0.24em] text-blyver-champagne">
@@ -191,9 +200,6 @@ function AdminCollectionsPage() {
                 alt=""
                 className="h-32 w-full max-w-xs object-cover"
               />
-            )}
-            {message && (
-              <p className="text-sm text-blyver-charcoal/70">{message}</p>
             )}
             <div className="flex gap-4">
               <button className="bg-blyver-ink px-5 py-4 text-[11px] tracking-[0.15em] text-blyver-ivory">

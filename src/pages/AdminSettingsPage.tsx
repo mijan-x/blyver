@@ -5,6 +5,8 @@ import {
   saveStoreSettings,
   type StoreSettings,
 } from "../services/settingsService";
+import AdminToast from "../components/admin/AdminToast";
+import { useAdminToast } from "../hooks/useAdminToast";
 const fields: Array<[keyof StoreSettings, string, "text" | "number"]> = [
   ["currency", "Currency", "text"],
   ["delivery_charge", "Standard delivery charge (৳)", "number"],
@@ -16,20 +18,24 @@ const fields: Array<[keyof StoreSettings, string, "text" | "number"]> = [
 ];
 function AdminSettingsPage() {
   const [settings, setSettings] = useState<StoreSettings>(defaultStoreSettings);
-  const [message, setMessage] = useState("");
+  const { toast, notifySuccess, notifyError, dismiss } = useAdminToast();
+  const [loadNote, setLoadNote] = useState("");
   useEffect(() => {
     getStoreSettings()
       .then(setSettings)
       .catch(() =>
-        setMessage("Run the settings migration before editing these values."),
+        setLoadNote("Run the settings migration before editing these values."),
       );
   }, []);
   async function save() {
     const { error } = await saveStoreSettings(settings);
-    setMessage(error ? error.message : "Store settings saved.");
+    if (error) notifyError(error.message);
+    else notifySuccess("Store settings saved.");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
   return (
     <main className="bg-blyver-ivory px-6 py-16 text-blyver-ink sm:px-10 sm:py-20">
+      <AdminToast toast={toast} onDismiss={dismiss} />
       <section className="mx-auto max-w-3xl">
         <p className="text-[11px] tracking-[0.24em] text-blyver-champagne">
           BLYVER ADMIN / BANGLADESH SETTINGS
@@ -40,6 +46,9 @@ function AdminSettingsPage() {
           Online-payment gateways can be added later without changing this
           setup.
         </p>
+        {loadNote && (
+          <p className="mt-3 text-sm text-blyver-charcoal/65">{loadNote}</p>
+        )}
         <div className="mt-10 grid gap-5 sm:grid-cols-2">
           {fields.map(([key, label, type]) => (
             <label
@@ -66,9 +75,6 @@ function AdminSettingsPage() {
             </label>
           ))}
         </div>
-        {message && (
-          <p className="mt-5 text-sm text-blyver-charcoal/70">{message}</p>
-        )}
         <button
           onClick={save}
           className="mt-8 bg-blyver-ink px-6 py-4 text-[11px] tracking-[0.16em] text-blyver-ivory"

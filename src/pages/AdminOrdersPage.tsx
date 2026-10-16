@@ -9,6 +9,8 @@ import {
   type OrderStatus,
 } from "../services/adminOrderService";
 import { formatBdt } from "../utils/formatCurrency";
+import AdminToast from "../components/admin/AdminToast";
+import { useAdminToast } from "../hooks/useAdminToast";
 
 const statusFilters: Array<OrderStatus | "all"> = [
   "all",
@@ -40,7 +42,7 @@ function AdminOrdersPage() {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
-  const [actionError, setActionError] = useState("");
+  const { toast, notifySuccess, notifyError, dismiss } = useAdminToast();
 
   const load = useCallback(() => {
     setError("");
@@ -63,12 +65,14 @@ function AdminOrdersPage() {
         : `Mark ${order.order_number} as ${orderStatusLabels[newStatus].toLowerCase()}?`;
     if (!window.confirm(confirmMessage)) return;
     setUpdating(order.id);
-    setActionError("");
     try {
       await updateOrderStatus(order.id, newStatus);
+      notifySuccess(
+        `${order.order_number} marked ${orderStatusLabels[newStatus].toLowerCase()}.`,
+      );
       await load();
     } catch (updateError) {
-      setActionError(
+      notifyError(
         updateError instanceof Error
           ? updateError.message
           : "Could not update the order status.",
@@ -80,6 +84,7 @@ function AdminOrdersPage() {
 
   return (
     <main className="bg-blyver-ivory px-6 py-16 text-blyver-ink sm:px-10 sm:py-20">
+      <AdminToast toast={toast} onDismiss={dismiss} />
       <div className="mx-auto max-w-7xl">
         <p className="text-[11px] tracking-[0.24em] text-blyver-champagne">
           BLYVER ADMIN
@@ -119,11 +124,6 @@ function AdminOrdersPage() {
         </div>
 
         {error && <p className="mt-8 text-sm text-red-700">{error}</p>}
-        {actionError && (
-          <p role="alert" className="mt-5 text-sm text-red-700">
-            {actionError}
-          </p>
-        )}
 
         {orders === null && !error ? (
           <p className="mt-10 text-[11px] tracking-[0.16em] text-blyver-muted">

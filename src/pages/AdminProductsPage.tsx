@@ -14,6 +14,12 @@ import {
 import type { ProductGender } from "../types/catalog";
 import { formatBdt } from "../utils/formatCurrency";
 import { supabase } from "../lib/supabase";
+import AdminToast from "../components/admin/AdminToast";
+import { useAdminToast } from "../hooks/useAdminToast";
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 function imageUrl(path: string | null | undefined) {
   return path
@@ -44,7 +50,7 @@ function AdminProductsPage() {
   const [editing, setEditing] = useState<AdminProduct | null>(null);
   const [form, setForm] = useState<ProductInput>(emptyProduct());
   const [image, setImage] = useState<File | null>(null);
-  const [message, setMessage] = useState("");
+  const { toast, notifySuccess, notifyError, dismiss } = useAdminToast();
   const [newCategory, setNewCategory] = useState("");
   const load = useCallback(
     () =>
@@ -60,10 +66,10 @@ function AdminProductsPage() {
           return loadedProducts;
         })
         .catch((error: Error) => {
-          setMessage(error.message);
+          notifyError(error.message);
           return undefined;
         }),
-    [],
+    [notifyError],
   );
   useEffect(() => {
     void load();
@@ -76,7 +82,7 @@ function AdminProductsPage() {
     setEditing(null);
     setImage(null);
     setForm(emptyProduct(categories[0]?.id));
-    setMessage("");
+    scrollToTop();
   }
   function startEdit(product: AdminProduct) {
     setEditing(product);
@@ -97,7 +103,10 @@ function AdminProductsPage() {
       best_seller: product.best_seller,
       status: product.status,
     });
-    setMessage("");
+    // The product list this is called from can be far below the form
+    // (the two sit side by side only on wide screens); scroll up so the
+    // admin actually sees the form populate with the product's data.
+    scrollToTop();
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -118,7 +127,7 @@ function AdminProductsPage() {
         const created = reloaded?.find((product) => product.id === id);
         if (created) {
           startEdit(created);
-          setMessage(
+          notifySuccess(
             image
               ? "Product added with image."
               : "Product added — attach an image below whenever you're ready.",
@@ -126,10 +135,10 @@ function AdminProductsPage() {
           return;
         }
       }
-      setMessage(editing ? "Product updated." : "Product added.");
+      notifySuccess(editing ? "Product updated." : "Product added.");
       startNew();
     } catch (error) {
-      setMessage(
+      notifyError(
         error instanceof Error ? error.message : "Product could not be saved.",
       );
     }
@@ -146,9 +155,9 @@ function AdminProductsPage() {
       );
       change("category_id", category.id);
       setNewCategory("");
-      setMessage("Category added.");
+      notifySuccess("Category added.");
     } catch (error) {
-      setMessage(
+      notifyError(
         error instanceof Error ? error.message : "Category could not be added.",
       );
     }
@@ -158,14 +167,14 @@ function AdminProductsPage() {
       return;
     try {
       const result = await deleteAdminProduct(product);
-      setMessage(
+      notifySuccess(
         result.archived
           ? `${product.name} has past orders, so it was hidden from the store instead of deleted (its order history needs to stay intact). Set Visibility back to Visible if you need to unhide it.`
           : "Product removed.",
       );
       await load();
     } catch (error) {
-      setMessage(
+      notifyError(
         error instanceof Error
           ? error.message
           : "Product could not be removed.",
@@ -174,6 +183,7 @@ function AdminProductsPage() {
   }
   return (
     <main className="bg-blyver-ivory px-6 py-16 text-blyver-ink sm:px-10 sm:py-20">
+      <AdminToast toast={toast} onDismiss={dismiss} />
       <div className="mx-auto grid max-w-7xl gap-14 xl:grid-cols-[420px_1fr]">
         <section>
           <p className="text-[11px] tracking-[0.24em] text-blyver-champagne">
@@ -399,9 +409,6 @@ function AdminProductsPage() {
                 Best seller
               </label>
             </div>
-            {message && (
-              <p className="text-sm text-blyver-charcoal/70">{message}</p>
-            )}
             <div className="flex gap-4">
               <button className="bg-blyver-ink px-5 py-4 text-[11px] tracking-[0.15em] text-blyver-ivory">
                 {editing ? "SAVE CHANGES" : "ADD PRODUCT"}
