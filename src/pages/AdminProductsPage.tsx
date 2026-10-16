@@ -13,6 +13,14 @@ import {
 } from "../services/adminCatalogService";
 import type { ProductGender } from "../types/catalog";
 import { formatBdt } from "../utils/formatCurrency";
+import { supabase } from "../lib/supabase";
+
+function imageUrl(path: string | null | undefined) {
+  return path
+    ? supabase.storage.from("product-images").getPublicUrl(path).data
+        .publicUrl
+    : null;
+}
 
 const emptyProduct = (categoryId = ""): ProductInput => ({
   name: "",
@@ -49,8 +57,12 @@ function AdminProductsPage() {
               ? current
               : { ...current, category_id: loadedCategories[0].id },
           );
+          return loadedProducts;
         })
-        .catch((error: Error) => setMessage(error.message)),
+        .catch((error: Error) => {
+          setMessage(error.message);
+          return undefined;
+        }),
     [],
   );
   useEffect(() => {
@@ -89,12 +101,33 @@ function AdminProductsPage() {
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const isNewProduct = !editing;
+    if (
+      isNewProduct &&
+      !image &&
+      !window.confirm(
+        "No image selected — add this product without a photo? You can attach one afterwards; this product will keep editing open so you can add it right away.",
+      )
+    )
+      return;
     try {
       const id = await saveAdminProduct(form, editing?.id);
       if (image) await uploadAdminProductImage(id, form.name, image);
+      const reloaded = await load();
+      if (isNewProduct) {
+        const created = reloaded?.find((product) => product.id === id);
+        if (created) {
+          startEdit(created);
+          setMessage(
+            image
+              ? "Product added with image."
+              : "Product added — attach an image below whenever you're ready.",
+          );
+          return;
+        }
+      }
       setMessage(editing ? "Product updated." : "Product added.");
       startNew();
-      await load();
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Product could not be saved.",
@@ -229,6 +262,7 @@ function AdminProductsPage() {
                   min="0"
                   type="number"
                   value={form.original_price}
+                  onFocus={(event) => event.target.select()}
                   onChange={(event) =>
                     change("original_price", Number(event.target.value))
                   }
@@ -241,6 +275,7 @@ function AdminProductsPage() {
                   min="0"
                   type="number"
                   value={form.sale_price ?? ""}
+                  onFocus={(event) => event.target.select()}
                   onChange={(event) =>
                     change(
                       "sale_price",
@@ -259,6 +294,7 @@ function AdminProductsPage() {
                   min="0"
                   type="number"
                   value={form.stock_quantity}
+                  onFocus={(event) => event.target.select()}
                   onChange={(event) =>
                     change("stock_quantity", Number(event.target.value))
                   }
@@ -312,6 +348,27 @@ function AdminProductsPage() {
                 className="mt-2 block w-full text-sm"
               />
             </label>
+            {image ? (
+              <p className="text-xs text-blyver-charcoal/70">
+                Selected: {image.name} — will upload when you save.
+              </p>
+            ) : (
+              editing?.product_images?.[0]?.storage_path && (
+                <div className="flex items-center gap-3">
+                  <img
+                    src={
+                      imageUrl(editing.product_images[0].storage_path) ??
+                      undefined
+                    }
+                    alt=""
+                    className="h-16 w-16 object-cover"
+                  />
+                  <p className="text-xs text-blyver-charcoal/70">
+                    Current image. Choose a file above to replace it.
+                  </p>
+                </div>
+              )
+            )}
             <div className="flex flex-wrap gap-4 text-sm">
               <label>
                 <input
