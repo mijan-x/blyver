@@ -171,14 +171,17 @@ function AdminProductsPage() {
       const id = await saveAdminProduct(form, editing?.id);
       if (images.length) await uploadAdminProductImages(id, form.name, images);
       const reloaded = await load();
-      if (isNewProduct) {
+      // Only stay on the product (instead of resetting to a blank form) when
+      // it was just created with no image yet -- that's the one case where
+      // the admin still needs this exact product's upload control in front
+      // of them. Once it has at least one image, go back to a blank form so
+      // adding the next product doesn't require clicking Cancel first.
+      if (isNewProduct && !images.length) {
         const created = reloaded?.find((product) => product.id === id);
         if (created) {
           startEdit(created);
           notifySuccess(
-            images.length
-              ? "Product added with image."
-              : "Product added — attach an image below whenever you're ready.",
+            "Product added — attach an image below whenever you're ready.",
           );
           return;
         }
