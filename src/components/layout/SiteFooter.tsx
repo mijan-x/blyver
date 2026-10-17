@@ -1,4 +1,10 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  defaultStoreSettings,
+  getStoreSettings,
+  type StoreSettings,
+} from "../../services/settingsService";
 
 const shopLinks = [
   { label: "Men", to: "/men" },
@@ -13,9 +19,32 @@ const helpLinks = [
 ];
 
 function SiteFooter() {
+  const [settings, setSettings] = useState<StoreSettings>(
+    defaultStoreSettings,
+  );
+
+  useEffect(() => {
+    getStoreSettings()
+      .then(setSettings)
+      .catch(() => undefined);
+  }, []);
+
+  const phone = settings.phone.trim();
+  const email = settings.email.trim();
+  const whatsapp = settings.whatsapp.trim();
+  const address = settings.business_address.trim();
+  const whatsappDigits = whatsapp.replace(/\D/g, "");
+  const hasContact = Boolean(phone || email || whatsapp || address);
+
   return (
     <footer className="border-t border-blyver-ivory/10 bg-blyver-ink text-blyver-ivory">
-      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-14 sm:px-10 md:grid-cols-[1.5fr_1fr_1fr] md:py-18">
+      <div
+        className={`mx-auto grid max-w-7xl gap-12 px-6 py-14 sm:px-10 md:py-18 ${
+          hasContact
+            ? "md:grid-cols-[1.5fr_1fr_1fr_1.3fr]"
+            : "md:grid-cols-[1.5fr_1fr_1fr]"
+        }`}
+      >
         <div>
           <p className="text-sm tracking-[0.28em]">BLYVER</p>
           <p className="mt-5 max-w-xs font-serif text-2xl leading-tight text-blyver-ivory/90">
@@ -61,6 +90,57 @@ function SiteFooter() {
             ))}
           </ul>
         </div>
+
+        {hasContact && (
+          <div>
+            <h2 className="text-[11px] tracking-[0.2em] text-blyver-champagne">
+              CONTACT
+            </h2>
+            <ul className="mt-5 space-y-3 text-sm text-blyver-ivory/75">
+              {phone && (
+                <li>
+                  <a
+                    href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+                    className="transition hover:text-blyver-champagne"
+                  >
+                    {phone}
+                  </a>
+                </li>
+              )}
+              {email && (
+                <li>
+                  <a
+                    href={`mailto:${email}`}
+                    className="break-all transition hover:text-blyver-champagne"
+                  >
+                    {email}
+                  </a>
+                </li>
+              )}
+              {whatsapp && (
+                <li>
+                  {whatsappDigits ? (
+                    <a
+                      href={`https://wa.me/${whatsappDigits}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transition hover:text-blyver-champagne"
+                    >
+                      WhatsApp: {whatsapp}
+                    </a>
+                  ) : (
+                    <span>WhatsApp: {whatsapp}</span>
+                  )}
+                </li>
+              )}
+              {address && (
+                <li className="max-w-xs whitespace-pre-line leading-6">
+                  {address}
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
       </div>
       <div className="border-t border-blyver-ivory/10 px-6 py-5 sm:px-10">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 text-[10px] tracking-[0.1em] text-blyver-muted sm:flex-row sm:items-center sm:justify-between">
