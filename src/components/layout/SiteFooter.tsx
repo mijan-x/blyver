@@ -19,9 +19,7 @@ const helpLinks = [
 ];
 
 function SiteFooter() {
-  const [settings, setSettings] = useState<StoreSettings>(
-    defaultStoreSettings,
-  );
+  const [settings, setSettings] = useState<StoreSettings>(defaultStoreSettings);
 
   useEffect(() => {
     getStoreSettings()
