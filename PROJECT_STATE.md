@@ -85,6 +85,8 @@ supabase/
   - [ ] No admin screen for the list yet; read it in the Supabase table editor
 - [x] "The Blyver Edit" section had an empty left column; it now shows a mosaic of up to 4 real product photos from the live catalogue (`src/components/home/EditCollage.tsx`, branch `feat/blyver-edit-collage`)
 
+- [x] Homepage "For him" tile shows real men's product photos (two watches, featured first) from the live catalogue instead of cropping the brand cover (`MenTileImage.tsx`, branch `feat/for-him-real-photos`); falls back to the cover if none. The catalogue has no wallet products yet, so no wallet photo appears -- add a wallet product (or supply a photo) to show one.
+
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
 - Valid Bangladesh mobile required (`01[3-9]XXXXXXXX`; `+880`/`880` and spaces/dashes accepted, stored as `01XXXXXXXXX` in `orders.guest_phone`).

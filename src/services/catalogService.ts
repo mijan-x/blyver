@@ -140,6 +140,20 @@ export async function getCatalogProducts(
   return ((data ?? []) as ProductRow[]).map(toProduct);
 }
 
+// Homepage sections (the Blyver Edit mosaic, the "For him" tile) all show
+// photos from the same lean product list, so fetch it once per page load.
+let homeProductsPromise: Promise<Product[]> | null = null;
+
+export function getHomeProducts(): Promise<Product[]> {
+  if (!homeProductsPromise) {
+    homeProductsPromise = getCatalogProducts().catch((error: unknown) => {
+      homeProductsPromise = null; // let the next caller retry
+      throw error;
+    });
+  }
+  return homeProductsPromise;
+}
+
 // Active product names for search-as-you-type suggestions. Fetched once per
 // page load (names only, no joins) and filtered in the browser.
 let productNamesPromise: Promise<string[]> | null = null;
