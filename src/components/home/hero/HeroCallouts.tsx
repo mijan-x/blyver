@@ -100,7 +100,7 @@ function CalloutLabel({
         left: `${(x / FRAME_WIDTH) * 100}%`,
         top: `${(y / FRAME_HEIGHT) * 100}%`,
       }}
-      className={`type-wide absolute -translate-y-[160%] text-[10px] whitespace-nowrap text-blyver-polished [text-shadow:0_1px_8px_rgb(23_27_32/0.9)] ${
+      className={`type-wide absolute -translate-y-[135%] bg-blyver-ink/70 px-2.5 py-1.5 text-[10px] whitespace-nowrap text-blyver-polished backdrop-blur-sm ${
         callout.side === "left" ? "-translate-x-full text-right" : ""
       }`}
     >

@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { m, useReducedMotion, useScroll, useTransform } from "motion/react";
+import {
+  m,
+  useInView,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "motion/react";
 import { getHomeProducts } from "../../services/catalogService";
 import type { Product } from "../../types/catalog";
 import { formatBdt } from "../../utils/formatCurrency";
@@ -25,15 +31,18 @@ function pickTiles(products: Product[]) {
 
 function Tile({ product, delay }: { product: Product; delay: number }) {
   const reduceMotion = useReducedMotion();
+  const link = useRef<HTMLAnchorElement>(null);
+  const inView = useInView(link, { once: true, amount: 0.3 });
   const image = [...product.images].sort(
     (first, second) => first.position - second.position,
   )[0];
+  const open = { clipPath: "inset(0% 0% 0% 0%)" };
+  const closed = { clipPath: "inset(100% 0% 0% 0%)" };
   return (
-    <Link to={`/product/${product.slug}`} className="group block">
+    <Link ref={link} to={`/product/${product.slug}`} className="group block">
       <m.div
-        initial={reduceMotion ? false : { clipPath: "inset(100% 0% 0% 0%)" }}
-        whileInView={{ clipPath: "inset(0% 0% 0% 0%)" }}
-        viewport={{ once: true, amount: 0.3 }}
+        initial={reduceMotion ? false : closed}
+        animate={inView || reduceMotion ? open : closed}
         transition={{ duration: 1.2, delay, ease: [0.16, 1, 0.3, 1] }}
         className="relative aspect-[4/5] overflow-hidden bg-blyver-polished"
       >
