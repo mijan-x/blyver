@@ -6,6 +6,7 @@ import {
   type HomepageContent,
 } from "../services/contentService";
 import EditCollage from "../components/home/EditCollage";
+import MenTileImage from "../components/home/MenTileImage";
 import NewsletterForm from "../components/newsletter/NewsletterForm";
 import Seo from "../components/seo/Seo";
 import coverImage from "../assets/brand/landing-cover.webp";
@@ -124,15 +125,7 @@ function HomePage() {
           to="/men"
           className="group relative min-h-[510px] overflow-hidden sm:min-h-[620px]"
         >
-          <img
-            src={coverImage}
-            alt="Blyver men's watches and wallets"
-            width={1600}
-            height={667}
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover object-[20%_center] transition duration-700 group-hover:scale-105"
-          />
+          <MenTileImage />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-8 sm:p-12">
             <p className="text-[11px] tracking-[0.24em] text-blyver-champagne">

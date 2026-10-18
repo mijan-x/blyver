@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getCatalogProducts } from "../../services/catalogService";
+import { getHomeProducts } from "../../services/catalogService";
 import type { Product } from "../../types/catalog";
 
 const tileCount = 4;
@@ -28,7 +28,7 @@ function EditCollage() {
 
   useEffect(() => {
     let active = true;
-    getCatalogProducts()
+    getHomeProducts()
       .then((products) => {
         if (active) setTiles(pickTiles(products));
       })
