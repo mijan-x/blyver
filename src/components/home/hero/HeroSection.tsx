@@ -117,11 +117,15 @@ function ThreeHero({ content }: { content: HomepageContent }) {
     target: track,
     offset: ["start start", "end end"],
   });
-  const copyOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0]);
-  const copyY = useTransform(scrollYProgress, [0, 0.45], [0, -48]);
-  const captionOpacity = useTransform(scrollYProgress, [0.62, 0.9], [0, 1]);
-  const captionY = useTransform(scrollYProgress, [0.62, 0.9], [32, 0]);
-  const cueOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
+  // Derived through a function so motion doesn't hand the opacity animations
+  // to the browser's native scroll timeline, which maps this sticky layout
+  // wrongly (the headline stayed visible at the end of the scroll).
+  const progress = useTransform(scrollYProgress, (value) => value);
+  const copyOpacity = useTransform(progress, [0, 0.45], [1, 0]);
+  const copyY = useTransform(progress, [0, 0.45], [0, -48]);
+  const captionOpacity = useTransform(progress, [0.62, 0.9], [0, 1]);
+  const captionY = useTransform(progress, [0.62, 0.9], [32, 0]);
+  const cueOpacity = useTransform(progress, [0, 0.08], [1, 0]);
 
   return (
     <section
@@ -143,7 +147,7 @@ function ThreeHero({ content }: { content: HomepageContent }) {
         >
           <Suspense fallback={null}>
             <HeroCanvas
-              progress={scrollYProgress}
+              progress={progress}
               active={onScreen}
               reducedMotion={reduceMotion}
               onReady={() => setSceneReady(true)}

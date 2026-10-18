@@ -18,10 +18,10 @@ function Parallax({ children, className = "", offset = 50 }: ParallaxProps) {
     target: frame,
     offset: ["start end", "end start"],
   });
-  const y = useTransform(
-    scrollYProgress,
-    [0, 1],
-    reduceMotion ? [0, 0] : [-offset, offset],
+  // Function form keeps this on the main thread; motion's native
+  // scroll-timeline shortcut can misplace values when ancestors are sticky.
+  const y = useTransform(scrollYProgress, (value) =>
+    reduceMotion ? 0 : (value * 2 - 1) * offset,
   );
 
   return (
