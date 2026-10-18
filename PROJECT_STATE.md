@@ -91,16 +91,20 @@ supabase/
 
 - [x] Contact page (branch `feat/contact-page`): shows phone, WhatsApp, email and address from `site_settings` (edit them in `/admin/settings`; the footer uses the same values) plus the delivery charge and free-delivery threshold, in Cormorant Garamond (`--font-display` token in `src/index.css`, loaded only on this page). No opening hours or returns policy are shown because none are stored yet.
 
-- [ ] Home page 3D hero + scroll animations (branch `feat/ui-motion`, in review)
-  - [x] Scroll-driven 3D hero (`src/components/home/hero/`): placeholder watch built from simple shapes, turns and glides to the centre while the headline fades; hands show the visitor's real time; reacts to the pointer
-  - [x] three.js / React Three Fiber are lazy-loaded (separate chunk, only on the home page); rendering pauses when the hero is off screen; no HDR download (reflections are built in code)
-  - [x] Fallbacks: no WebGL -> the original photo hero; `prefers-reduced-motion` -> static hero, no scroll animation
-  - [x] Brand cover photo kept as a parallax band under the hero
-  - [x] Scroll reveal (`components/motion/Reveal.tsx`) and parallax images (`components/motion/Parallax.tsx`) on the home sections, via `motion` with `LazyMotion` (small feature bundle)
-  - [x] Theme colours unchanged
-  - [ ] Swap the placeholder for a real product model: see `src/components/home/hero/heroModel.ts` (put a Draco-compressed .glb under ~1 MB in `public/models/` and set `url`)
-  - [ ] `package-lock.json` not updated (registry unreachable in the session that wrote it): run `npm install` locally and commit the lockfile
-  - [ ] Check on a mid-range phone and run Lighthouse on the preview
+- [ ] Metallic redesign + scroll animation (branch `feat/ui-motion`, in review; not merged)
+  - [x] "Tool steel" theme in `src/index.css`: gunmetal `ink`, anthracite `charcoal`, platinum `ivory`, blued-steel accent (still named `champagne`), plus `steel`, `polished`, `blued-deep`. Token names kept so every page re-themed without code changes
+  - [x] Type: Archivo (Google Fonts, loaded in `index.html`); `font-serif`/`font-display` now mean Archivo widened (118%) light, for headings. Cormorant loader removed from the contact page
+  - [x] Finishes: `.btn-steel` (polished button with light sweep), `.btn-line`, `brushed`, `brushed-light`, `text-metal`, `type-wide`
+  - [x] Steel versions of the logo (`src/assets/brand/blyver-logo-steel.png`) and favicon (`public/favicon-steel.png`), made from the gold originals (kept)
+  - [x] Hero: the product film plays frame by frame with the scroll (front, profile, caseback, dial, front) on a canvas, with a caption per shot, a watchmaker's scale and leader-line callouts on the last shot. Frames in `public/hero/lg` (1060x640, 2.5 MB) and `public/hero/sm` (640x386, 1.4 MB, used on save-data/slow connections), every 2nd frame of the supplied film, cropped and painted to remove the film's own titles. Timing in `src/components/home/hero/heroSequence.ts` (comments explain how to swap the film)
+  - [x] Home sections: Edit collage (two drifting columns, shutter reveals), Men/Women panels with aperture reveal, philosophy section with a CSS/SVG steel watch head that winds with the scroll, purse section, newsletter; footer wordmark rises with the scroll
+  - [x] Motion everywhere uses `motion` with `LazyMotion` in `PublicLayout` (use `m.*`, not `motion.*`). Helpers in `src/components/motion/`: `Reveal`, `MaskReveal`, `Aperture`. Catalog, collections and product grids reveal on scroll
+  - [x] `prefers-reduced-motion`: hero shows the first frame and headline only; philosophy section is static; reveals are skipped
+  - [x] three.js / React Three Fiber removed (the shape-built watch was replaced by the film)
+  - [x] Vercel preview builds pass; checked in the browser at 1440x900 and 375x812 (all five hero shots, every home section, mobile menu, /men, /collections, a product page)
+  - [ ] `package-lock.json` not updated (registry unreachable in the session that wrote it): run `npm install` locally and commit the lockfile (adds `motion`)
+  - [ ] `npm run lint` not run yet (same reason)
+  - [ ] Check on a real mid-range phone and run Lighthouse on the preview (hero frames are ~2.5 MB, loaded progressively after the first frame)
 
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
@@ -145,6 +149,7 @@ supabase/
 - ~~No way for admin to change the `/collections` page's names/descriptions/images~~ — fixed (PR #18, `feat/admin-collections`). The page was entirely hardcoded in source; now backed by the `collections` table (which already existed but was unused) via `getCollections()`, with full CRUD at `/admin/collections` (name, description, "Discover" link, display order, visibility, image upload to the `product-images` bucket under `collections/`). Migration `20261016180000_collections_admin.sql` added a `link_path` column and seeded the 4 previously-hardcoded collections as real rows (image_path left null — admin needs to upload real images via `/admin/collections` to replace the bundled-image fallback `CollectionsPage` falls back to for those 4 known slugs).
 - About page is a placeholder. (Search was built in `feat/search-page`: name search at `/search?q=`, up to 24 results; `feat/search-suggestions` adds product-name suggestions while typing.)
 - Variants exist in the database but are unused by the UI.
+- Product page reviews request returns 400 (`reviews?select=...,profiles(full_name)`): PostgREST can't join `reviews` to `profiles` (likely no foreign key between them). Seen 2026-10-18; reviews section shows nothing. Not caused by the redesign.
 - The homepage's own section images ("FOR HIM"/"FOR HER"/"ELEGANT CARRY" banners in `HomePage.tsx`) are still hardcoded bundled images, separate from the `/collections` page fixed above — not wired to the `collections` table. Revisit if admin wants those editable too.
 
 ## Notes
