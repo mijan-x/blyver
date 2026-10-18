@@ -89,6 +89,8 @@ supabase/
 
 - [x] `/collections`: "Men's Watches" card shows a real men's watch photo from the live catalogue (until an admin uploads one); "Wallets" fallback is cropped to the wallet side of the brand cover. An admin-uploaded image always wins. Still placeholder: Wallets (no wallet products yet) and Ladies' Purses (see the content note in Notes).
 
+- [x] Contact page (branch `feat/contact-page`): shows phone, WhatsApp, email and address from `site_settings` (edit them in `/admin/settings`; the footer uses the same values) plus the delivery charge and free-delivery threshold, in Cormorant Garamond (`--font-display` token in `src/index.css`, loaded only on this page). No opening hours or returns policy are shown because none are stored yet.
+
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
 - Valid Bangladesh mobile required (`01[3-9]XXXXXXXX`; `+880`/`880` and spaces/dashes accepted, stored as `01XXXXXXXXX` in `orders.guest_phone`).
@@ -130,7 +132,7 @@ supabase/
 - ~~Category chips are not clickable~~ — fixed (`feat/clickable-category-chips`, PR #15). Chips are now real buttons backed by `getCategories(gender)` (reads the `categories` table) with an "All" option; clicking filters the grid via `getCatalogProducts`' existing `categoryId` filter. Note: `/women` currently has zero category rows in the live DB, so no chip row renders there yet — not a bug, just no data.
 - ~~Tab icon shown as the Vite scaffold's purple bolt for some visitors~~ — fixed (PR #16 removed the orphaned `public/favicon.svg`; PR #17 renamed `favicon.png` → `favicon-b.png` and updated `index.html`'s `<link>` to cache-bust browsers that had the old icon cached — no customer action needed, the new URL is fetched fresh automatically).
 - ~~No way for admin to change the `/collections` page's names/descriptions/images~~ — fixed (PR #18, `feat/admin-collections`). The page was entirely hardcoded in source; now backed by the `collections` table (which already existed but was unused) via `getCollections()`, with full CRUD at `/admin/collections` (name, description, "Discover" link, display order, visibility, image upload to the `product-images` bucket under `collections/`). Migration `20261016180000_collections_admin.sql` added a `link_path` column and seeded the 4 previously-hardcoded collections as real rows (image_path left null — admin needs to upload real images via `/admin/collections` to replace the bundled-image fallback `CollectionsPage` falls back to for those 4 known slugs).
-- About and Contact pages are placeholders. (Search was built in `feat/search-page`: name search at `/search?q=`, up to 24 results; `feat/search-suggestions` adds product-name suggestions while typing.)
+- About page is a placeholder. (Search was built in `feat/search-page`: name search at `/search?q=`, up to 24 results; `feat/search-suggestions` adds product-name suggestions while typing.)
 - Variants exist in the database but are unused by the UI.
 - The homepage's own section images ("FOR HIM"/"FOR HER"/"ELEGANT CARRY" banners in `HomePage.tsx`) are still hardcoded bundled images, separate from the `/collections` page fixed above — not wired to the `collections` table. Revisit if admin wants those editable too.
 
