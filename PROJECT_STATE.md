@@ -91,6 +91,17 @@ supabase/
 
 - [x] Contact page (branch `feat/contact-page`): shows phone, WhatsApp, email and address from `site_settings` (edit them in `/admin/settings`; the footer uses the same values) plus the delivery charge and free-delivery threshold, in Cormorant Garamond (`--font-display` token in `src/index.css`, loaded only on this page). No opening hours or returns policy are shown because none are stored yet.
 
+- [ ] Home page 3D hero + scroll animations (branch `feat/ui-motion`, in review)
+  - [x] Scroll-driven 3D hero (`src/components/home/hero/`): placeholder watch built from simple shapes, turns and glides to the centre while the headline fades; hands show the visitor's real time; reacts to the pointer
+  - [x] three.js / React Three Fiber are lazy-loaded (separate chunk, only on the home page); rendering pauses when the hero is off screen; no HDR download (reflections are built in code)
+  - [x] Fallbacks: no WebGL -> the original photo hero; `prefers-reduced-motion` -> static hero, no scroll animation
+  - [x] Brand cover photo kept as a parallax band under the hero
+  - [x] Scroll reveal (`components/motion/Reveal.tsx`) and parallax images (`components/motion/Parallax.tsx`) on the home sections, via `motion` with `LazyMotion` (small feature bundle)
+  - [x] Theme colours unchanged
+  - [ ] Swap the placeholder for a real product model: see `src/components/home/hero/heroModel.ts` (put a Draco-compressed .glb under ~1 MB in `public/models/` and set `url`)
+  - [ ] `package-lock.json` not updated (registry unreachable in the session that wrote it): run `npm install` locally and commit the lockfile
+  - [ ] Check on a mid-range phone and run Lighthouse on the preview
+
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
 - Valid Bangladesh mobile required (`01[3-9]XXXXXXXX`; `+880`/`880` and spaces/dashes accepted, stored as `01XXXXXXXXX` in `orders.guest_phone`).
