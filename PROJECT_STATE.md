@@ -77,6 +77,13 @@ supabase/
   - [x] Coupon discounts are not previewed (customers cannot read `coupons`); a note says the discount is applied when the order is placed
   - [ ] Not yet verified with `npm run build` / `npm run lint` (registry unreachable in the session that wrote it)
 
+- [x] Newsletter sign-up (branch `feat/newsletter-signup`)
+  - [x] Homepage "Join the Blyver list" is now an email form (it used to link to `/contact` and captured nothing)
+  - [x] Migration `20261018120000_newsletter_subscribers.sql`: `newsletter_subscribers` table, anyone can insert, only admins can read; repeat sign-ups are ignored silently
+  - [ ] Migration NOT yet applied to the live Supabase project: run it by hand in the SQL editor before merging, or the form shows an error
+  - [ ] Not yet verified with `npm run build` / `npm run lint`
+  - [ ] No admin screen for the list yet; read it in the Supabase table editor
+
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
 - Valid Bangladesh mobile required (`01[3-9]XXXXXXXX`; `+880`/`880` and spaces/dashes accepted, stored as `01XXXXXXXXX` in `orders.guest_phone`).
