@@ -127,7 +127,11 @@ export async function getCatalogProducts(
   if (filters.categoryId) query = query.eq("category_id", filters.categoryId);
   if (filters.inStockOnly) query = query.gt("stock_quantity", 0);
   if (filters.onSaleOnly) query = query.not("sale_price", "is", null);
-  if (filters.query) query = query.ilike("name", `%${filters.query}%`);
+  if (filters.query) {
+    // Escape LIKE wildcards so "100%" or "a_b" match literally.
+    const term = filters.query.trim().replace(/[\\%_]/g, "\\$&");
+    query = query.ilike("name", `%${term}%`);
+  }
 
   const { data, error } = await query;
 
