@@ -140,6 +140,29 @@ export async function getCatalogProducts(
   return ((data ?? []) as ProductRow[]).map(toProduct);
 }
 
+// Active product names for search-as-you-type suggestions. Fetched once per
+// page load (names only, no joins) and filtered in the browser.
+let productNamesPromise: Promise<string[]> | null = null;
+
+export function getProductNameSuggestions(): Promise<string[]> {
+  if (!productNamesPromise) {
+    productNamesPromise = (async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("name")
+        .eq("status", "active")
+        .order("name", { ascending: true })
+        .limit(500);
+      if (error) throw error;
+      return Array.from(new Set((data ?? []).map((row) => row.name)));
+    })().catch((error: unknown) => {
+      productNamesPromise = null; // let the next focus retry
+      throw error;
+    });
+  }
+  return productNamesPromise;
+}
+
 // Fetches an exact set of products by id, regardless of the catalog list's
 // limit — used by the wishlist, which needs every wishlisted product, not
 // just whichever ones happen to be among the newest 24.
