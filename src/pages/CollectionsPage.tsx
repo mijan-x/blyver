@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import brandCoverImage from "../assets/brand/landing-cover.webp";
 import ladiesPursesImage from "../assets/collections/ladies-purses.webp";
 import womensWatchesImage from "../assets/collections/womens-watches.webp";
-import { getCollections } from "../services/catalogService";
+import { getCollections, getHomeProducts } from "../services/catalogService";
 import type { Collection } from "../types/catalog";
 
 // Fallback images for the collections that shipped with the store, so the
@@ -18,8 +18,17 @@ const fallbackImagesBySlug: Record<string, string> = {
   "womens-watches": womensWatchesImage,
 };
 
+// Where the bundled brand cover is used as a stand-in, show the side of it
+// that matches the collection (the wallet sits on its right edge).
+const fallbackPositionBySlug: Record<string, string> = {
+  wallets: "object-[95%_center]",
+};
+
 function CollectionsPage() {
   const [collections, setCollections] = useState<Collection[]>([]);
+  // A real men's watch photo from the live catalogue, used for "Men's
+  // Watches" until an admin uploads a feature image for it.
+  const [menWatchPhoto, setMenWatchPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -33,6 +42,24 @@ function CollectionsPage() {
         setError(true);
         setLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    getHomeProducts()
+      .then((products) => {
+        const men = products.filter(
+          (product) => product.gender === "men" && product.images.length > 0,
+        );
+        const pick = men.find((product) => product.featured) ?? men[0];
+        if (active && pick) setMenWatchPhoto(pick.images[0].url);
+      })
+      .catch(() => {
+        // Keep the bundled fallback image.
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
@@ -60,8 +87,15 @@ function CollectionsPage() {
         {collections.length > 0 && (
           <div className="mt-14 grid gap-px bg-blyver-muted/30 sm:grid-cols-2">
             {collections.map((collection) => {
+              const livePhoto =
+                collection.slug === "mens-watches" ? menWatchPhoto : null;
               const image =
-                collection.imageUrl ?? fallbackImagesBySlug[collection.slug];
+                collection.imageUrl ??
+                livePhoto ??
+                fallbackImagesBySlug[collection.slug];
+              const position = collection.imageUrl || livePhoto
+                ? ""
+                : (fallbackPositionBySlug[collection.slug] ?? "");
               return (
                 <Link
                   key={collection.id}
@@ -75,7 +109,7 @@ function CollectionsPage() {
                         alt={collection.name}
                         loading="lazy"
                         decoding="async"
-                        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                        className={`h-full w-full object-cover transition duration-700 group-hover:scale-105 ${position}`}
                       />
                     )}
                   </div>
