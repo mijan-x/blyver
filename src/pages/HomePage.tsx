@@ -5,6 +5,7 @@ import {
   getHomepageContent,
   type HomepageContent,
 } from "../services/contentService";
+import EditCollage from "../components/home/EditCollage";
 import NewsletterForm from "../components/newsletter/NewsletterForm";
 import Seo from "../components/seo/Seo";
 import coverImage from "../assets/brand/landing-cover.webp";
@@ -95,9 +96,12 @@ function HomePage() {
 
       <section className="bg-blyver-ivory px-6 py-18 sm:px-10 sm:py-24">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-          <p className="text-[11px] tracking-[0.26em] text-blyver-champagne">
-            THE BLYVER EDIT
-          </p>
+          <div>
+            <p className="text-[11px] tracking-[0.26em] text-blyver-champagne">
+              THE BLYVER EDIT
+            </p>
+            <EditCollage />
+          </div>
           <div>
             <h2 className="max-w-3xl font-serif text-4xl leading-tight sm:text-6xl">
               {content.editTitle}
