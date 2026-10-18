@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { m, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { getHomeProducts } from "../../services/catalogService";
 import type { Product } from "../../types/catalog";
+import { formatBdt } from "../../utils/formatCurrency";
 
-const tileCount = 4;
+const tileCount = 6;
 
-// Up to four different products that have a photo, alternating men's and
+// Up to six different products that have a photo, alternating men's and
 // women's pieces when both exist so the mosaic is a real mix.
 function pickTiles(products: Product[]) {
   const withPhoto = products.filter((product) => product.images.length > 0);
@@ -21,10 +23,63 @@ function pickTiles(products: Product[]) {
   return picked;
 }
 
-// A blend of real product photos from the live catalogue for "The Blyver
-// Edit" section. Renders nothing until at least two photos are available.
+function Tile({ product, delay }: { product: Product; delay: number }) {
+  const reduceMotion = useReducedMotion();
+  const image = [...product.images].sort(
+    (first, second) => first.position - second.position,
+  )[0];
+  return (
+    <Link to={`/product/${product.slug}`} className="group block">
+      <m.div
+        initial={reduceMotion ? false : { clipPath: "inset(100% 0% 0% 0%)" }}
+        whileInView={{ clipPath: "inset(0% 0% 0% 0%)" }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 1.2, delay, ease: [0.16, 1, 0.3, 1] }}
+        className="relative aspect-[4/5] overflow-hidden bg-blyver-polished"
+      >
+        <img
+          src={image.url}
+          alt={image.altText}
+          width={400}
+          height={500}
+          loading="lazy"
+          decoding="async"
+          className="size-full object-cover transition duration-1000 group-hover:scale-105"
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 ring-1 ring-blyver-steel/20 ring-inset"
+        />
+      </m.div>
+      <div className="mt-4 flex items-baseline justify-between gap-4">
+        <p className="truncate text-sm text-blyver-polished transition-colors group-hover:text-blyver-steel">
+          {product.name}
+        </p>
+        <p className="shrink-0 text-xs tabular-nums text-blyver-steel/70">
+          {formatBdt(product.salePrice ?? product.originalPrice)}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+// Real product photos from the live catalogue for "The Blyver Edit", in two
+// columns that drift past each other at different speeds as you scroll.
+// Renders nothing until at least two photos are available.
 function EditCollage() {
   const [tiles, setTiles] = useState<Product[]>([]);
+  const collage = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: collage,
+    offset: ["start end", "end start"],
+  });
+  const leftY = useTransform(scrollYProgress, (value) =>
+    reduceMotion ? 0 : 50 - value * 100,
+  );
+  const rightY = useTransform(scrollYProgress, (value) =>
+    reduceMotion ? 0 : 140 - value * 280,
+  );
 
   useEffect(() => {
     let active = true;
@@ -40,29 +95,29 @@ function EditCollage() {
     };
   }, []);
 
-  if (tiles.length < 2) return null;
+  const left = tiles.filter((_, index) => index % 2 === 0);
+  const right = tiles.filter((_, index) => index % 2 === 1);
 
   return (
-    <div className="mt-10 grid max-w-md grid-cols-2 gap-3 lg:mt-14">
-      {tiles.map((product, index) => (
-        <Link
-          key={product.id}
-          to={`/product/${product.slug}`}
-          className={`group relative block aspect-[4/5] overflow-hidden bg-blyver-charcoal/10 ${
-            index % 2 === 1 ? "mt-8" : ""
-          }`}
-        >
-          <img
-            src={product.images[0].url}
-            alt={product.images[0].altText}
-            width={400}
-            height={500}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-          />
-        </Link>
-      ))}
+    <div ref={collage} className="relative">
+      {tiles.length >= 2 && (
+        <div className="grid grid-cols-2 gap-4 sm:gap-6">
+          <m.div style={{ y: leftY }} className="grid content-start gap-8">
+            {left.map((product, index) => (
+              <Tile key={product.id} product={product} delay={index * 0.08} />
+            ))}
+          </m.div>
+          <m.div style={{ y: rightY }} className="mt-24 grid content-start gap-8">
+            {right.map((product, index) => (
+              <Tile
+                key={product.id}
+                product={product}
+                delay={0.12 + index * 0.08}
+              />
+            ))}
+          </m.div>
+        </div>
+      )}
     </div>
   );
 }

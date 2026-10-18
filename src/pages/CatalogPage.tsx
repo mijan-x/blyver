@@ -5,6 +5,8 @@ import ProductGrid from "../components/product/ProductGrid";
 import { useCatalogProducts } from "../hooks/useCatalogProducts";
 import { useCategories } from "../hooks/useCategories";
 import type { ProductGender } from "../types/catalog";
+import MaskReveal from "../components/motion/MaskReveal";
+import Reveal from "../components/motion/Reveal";
 
 type CatalogPageProps = {
   eyebrow: string;
@@ -19,21 +21,27 @@ function CatalogPage({ eyebrow, title, description, gender }: CatalogPageProps) 
   const { error, loading, products } = useCatalogProducts(gender, categoryId);
 
   return (
-    <main className="bg-blyver-ivory px-6 py-14 text-blyver-ink sm:px-10 sm:py-18">
+    <main className="brushed-light px-6 py-14 text-blyver-ink sm:px-10 sm:py-20">
       <div className="mx-auto max-w-7xl">
-        <p className="text-[11px] tracking-[0.26em] text-blyver-champagne">
-          {eyebrow}
-        </p>
-        <div className="mt-5 grid gap-7 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
-          <h1 className="max-w-3xl font-serif text-5xl leading-tight sm:text-7xl">
-            {title}
-          </h1>
-          <p className="max-w-lg text-sm leading-7 text-blyver-charcoal/70">
-            {description}
+        <Reveal>
+          <p className="type-wide text-[10px] text-blyver-blued-deep">
+            {eyebrow}
           </p>
+        </Reveal>
+        <div className="mt-5 grid gap-7 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
+          <MaskReveal className="max-w-3xl">
+            <h1 className="font-serif text-4xl leading-[1.04] sm:text-6xl">
+              {title}
+            </h1>
+          </MaskReveal>
+          <Reveal delay={0.15}>
+            <p className="max-w-lg text-sm leading-7 text-blyver-charcoal/70">
+              {description}
+            </p>
+          </Reveal>
         </div>
         {categories.length > 0 && (
-          <div className="mt-12 flex flex-wrap gap-x-7 gap-y-3 border-y border-blyver-ink/10 py-5 text-[11px] tracking-[0.16em]">
+          <div className="type-wide mt-12 flex flex-wrap gap-x-7 gap-y-3 border-y border-blyver-ink/10 py-5 text-[10px]">
             <button
               type="button"
               onClick={() => setCategoryId(undefined)}

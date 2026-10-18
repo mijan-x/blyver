@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { m, useReducedMotion, useScroll, useTransform } from "motion/react";
 import {
   defaultStoreSettings,
   getStoreSettings,
@@ -18,8 +19,21 @@ const helpLinks = [
   { label: "My account", to: "/account" },
 ];
 
+const headingClassName =
+  "type-wide text-[10px] uppercase text-blyver-muted";
+const linkClassName = "transition-colors hover:text-blyver-polished";
+
 function SiteFooter() {
   const [settings, setSettings] = useState<StoreSettings>(defaultStoreSettings);
+  const footerRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: footerRef,
+    offset: ["start end", "end end"],
+  });
+  const wordmarkY = useTransform(scrollYProgress, (value) =>
+    reduceMotion ? "0%" : `${(1 - value) * 45}%`,
+  );
 
   useEffect(() => {
     getStoreSettings()
@@ -35,35 +49,36 @@ function SiteFooter() {
   const hasContact = Boolean(phone || email || whatsapp || address);
 
   return (
-    <footer className="border-t border-blyver-ivory/10 bg-blyver-ink text-blyver-ivory">
+    <footer
+      ref={footerRef}
+      className="brushed relative overflow-hidden text-blyver-polished"
+    >
       <div
-        className={`mx-auto grid max-w-7xl gap-12 px-6 py-14 sm:px-10 md:py-18 ${
+        aria-hidden="true"
+        className="h-px bg-gradient-to-r from-transparent via-blyver-steel/35 to-transparent"
+      />
+      <div
+        className={`mx-auto grid max-w-7xl gap-12 px-6 pt-16 pb-10 sm:px-10 md:pt-20 ${
           hasContact
             ? "md:grid-cols-[1.5fr_1fr_1fr_1.3fr]"
             : "md:grid-cols-[1.5fr_1fr_1fr]"
         }`}
       >
         <div>
-          <p className="text-sm tracking-[0.28em]">BLYVER</p>
-          <p className="mt-5 max-w-xs font-serif text-2xl leading-tight text-blyver-ivory/90">
+          <p className="max-w-xs font-serif text-2xl leading-tight text-blyver-polished">
             Where elegance meets everyday.
           </p>
-          <p className="mt-5 text-sm leading-6 text-blyver-muted">
+          <p className="mt-5 max-w-xs text-sm leading-6 text-blyver-steel/70">
             Curated watches, wallets, and purses for life’s defining moments.
           </p>
         </div>
 
         <div>
-          <h2 className="text-[11px] tracking-[0.2em] text-blyver-champagne">
-            SHOP
-          </h2>
-          <ul className="mt-5 space-y-3 text-sm text-blyver-ivory/75">
+          <h2 className={headingClassName}>Shop</h2>
+          <ul className="mt-5 space-y-3 text-sm text-blyver-steel">
             {shopLinks.map((link) => (
               <li key={link.to}>
-                <Link
-                  to={link.to}
-                  className="transition hover:text-blyver-champagne"
-                >
+                <Link to={link.to} className={linkClassName}>
                   {link.label}
                 </Link>
               </li>
@@ -72,16 +87,11 @@ function SiteFooter() {
         </div>
 
         <div>
-          <h2 className="text-[11px] tracking-[0.2em] text-blyver-champagne">
-            CUSTOMER CARE
-          </h2>
-          <ul className="mt-5 space-y-3 text-sm text-blyver-ivory/75">
+          <h2 className={headingClassName}>Customer care</h2>
+          <ul className="mt-5 space-y-3 text-sm text-blyver-steel">
             {helpLinks.map((link) => (
               <li key={link.label}>
-                <Link
-                  to={link.to}
-                  className="transition hover:text-blyver-champagne"
-                >
+                <Link to={link.to} className={linkClassName}>
                   {link.label}
                 </Link>
               </li>
@@ -91,15 +101,13 @@ function SiteFooter() {
 
         {hasContact && (
           <div>
-            <h2 className="text-[11px] tracking-[0.2em] text-blyver-champagne">
-              CONTACT
-            </h2>
-            <ul className="mt-5 space-y-3 text-sm text-blyver-ivory/75">
+            <h2 className={headingClassName}>Contact</h2>
+            <ul className="mt-5 space-y-3 text-sm text-blyver-steel">
               {phone && (
                 <li>
                   <a
                     href={`tel:${phone.replace(/[^\d+]/g, "")}`}
-                    className="transition hover:text-blyver-champagne"
+                    className={linkClassName}
                   >
                     {phone}
                   </a>
@@ -109,7 +117,7 @@ function SiteFooter() {
                 <li>
                   <a
                     href={`mailto:${email}`}
-                    className="break-all transition hover:text-blyver-champagne"
+                    className={`break-all ${linkClassName}`}
                   >
                     {email}
                   </a>
@@ -122,7 +130,7 @@ function SiteFooter() {
                       href={`https://wa.me/${whatsappDigits}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="transition hover:text-blyver-champagne"
+                      className={linkClassName}
                     >
                       WhatsApp: {whatsapp}
                     </a>
@@ -140,8 +148,19 @@ function SiteFooter() {
           </div>
         )}
       </div>
-      <div className="border-t border-blyver-ivory/10 px-6 py-5 sm:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 text-[10px] tracking-[0.1em] text-blyver-muted sm:flex-row sm:items-center sm:justify-between">
+
+      {/* Engraved wordmark that rises into place as the page ends. */}
+      <div aria-hidden="true" className="overflow-hidden px-4">
+        <m.p
+          style={{ y: wordmarkY }}
+          className="text-metal text-center text-[21vw] leading-[0.82] font-light tracking-[-0.02em] select-none [font-stretch:125%] xl:text-[17rem]"
+        >
+          BLYVER
+        </m.p>
+      </div>
+
+      <div className="border-t border-blyver-steel/12 px-6 py-5 sm:px-10">
+        <div className="type-wide mx-auto flex max-w-7xl flex-col gap-2 text-[9.5px] text-blyver-muted sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} BLYVER. ALL RIGHTS RESERVED.</span>
           <span>PRICES IN BDT (৳)</span>
         </div>

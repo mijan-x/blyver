@@ -1,10 +1,160 @@
 @import "tailwindcss";
 
+/*
+ * Blyver "tool steel" theme.
+ * Token names are kept from the first theme so every page picks up the new
+ * palette without code changes:
+ *   ink       gunmetal, the main dark surface
+ *   charcoal  anthracite, raised dark surfaces
+ *   ivory     platinum, the light surface for shopping pages
+ *   champagne the accent, now "blued steel" (the heat-blued blue of watch
+ *             screws). Readable on both ink and ivory.
+ *   muted     steel grey for secondary text
+ */
 @theme {
-  --color-blyver-ink: #12110f;
-  --color-blyver-charcoal: #24211d;
-  --color-blyver-ivory: #f7f4ee;
-  --color-blyver-champagne: #c8aa72;
-  --color-blyver-muted: #8e887e;
-  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --color-blyver-ink: #171b20;
+  --color-blyver-charcoal: #252b32;
+  --color-blyver-ivory: #e7eaed;
+  --color-blyver-champagne: #557fc4;
+  --color-blyver-muted: #7f8994;
+  --color-blyver-steel: #aeb7bf;
+  --color-blyver-polished: #f4f6f7;
+  --color-blyver-blued-deep: #3a5f9e;
+
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-blyver-ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headings: Archivo widened like engraving on a caseback. Utilities such
+     as font-medium still win because they sit in a later layer. */
+  .font-serif,
+  .font-display {
+    font-stretch: 118%;
+    font-weight: 300;
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background-color: var(--color-blyver-champagne);
+    color: var(--color-blyver-polished);
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--color-blyver-champagne);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* Polished steel button, used once or twice per view for the main action. */
+  .btn-steel {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: var(--color-blyver-ink);
+    background: linear-gradient(
+      180deg,
+      #f7f9fa 0%,
+      #d6dce1 44%,
+      #b3bcc4 52%,
+      #e4e8eb 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      inset 0 -1px 0 rgb(0 0 0 / 0.22),
+      0 10px 24px -14px rgb(0 0 0 / 0.7);
+    font-stretch: 112%;
+    transition: box-shadow 0.3s ease;
+  }
+  .btn-steel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.85) 50%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .btn-steel:hover::after {
+    transform: translateX(120%);
+  }
+
+  /* Secondary action: a hairline steel frame. */
+  .btn-line {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    border: 1px solid rgb(174 183 191 / 0.45);
+    font-stretch: 112%;
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+  }
+  .btn-line:hover {
+    border-color: var(--color-blyver-steel);
+    background-color: rgb(174 183 191 / 0.08);
+  }
+}
+
+/* Brushed metal surfaces. */
+@utility brushed {
+  background-color: var(--color-blyver-charcoal);
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 45%),
+    repeating-linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.018) 0 1px,
+      transparent 1px 3px
+    );
+}
+
+@utility brushed-light {
+  background-color: var(--color-blyver-ivory);
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.5), transparent 40%),
+    repeating-linear-gradient(
+      90deg,
+      rgb(23 27 32 / 0.022) 0 1px,
+      transparent 1px 3px
+    );
+}
+
+/* Polished-steel text for large headlines on dark surfaces. */
+@utility text-metal {
+  color: var(--color-blyver-polished);
+  background-image: linear-gradient(
+    180deg,
+    #fbfcfc 0%,
+    #d9dfe4 42%,
+    #98a3ad 56%,
+    #e7ebee 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Wide, spaced type for navigation and small controls. */
+@utility type-wide {
+  font-stretch: 125%;
+  letter-spacing: 0.16em;
 }

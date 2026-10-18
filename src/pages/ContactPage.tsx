@@ -7,24 +7,6 @@ import {
 } from "../services/settingsService";
 import { formatBdt } from "../utils/formatCurrency";
 
-const fontLinkId = "blyver-display-font";
-const fontHref =
-  "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap";
-
-// The display font is only needed here, so load it with this page instead of
-// adding a render-blocking stylesheet to every page. Until it arrives the
-// text shows in the serif fallback from the --font-display token.
-function useDisplayFont() {
-  useEffect(() => {
-    if (document.getElementById(fontLinkId)) return;
-    const link = document.createElement("link");
-    link.id = fontLinkId;
-    link.rel = "stylesheet";
-    link.href = fontHref;
-    document.head.appendChild(link);
-  }, []);
-}
-
 // +8801333411163 -> +880 1333-411163 (falls back to the stored text).
 function formatPhone(phone: string) {
   const match = phone.replace(/[\s-]/g, "").match(/^\+?880(1\d{3})(\d{6})$/);
@@ -64,7 +46,6 @@ function ContactCard({ label, value, action }: ContactCardProps) {
 }
 
 function ContactPage() {
-  useDisplayFont();
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [failed, setFailed] = useState(false);
 

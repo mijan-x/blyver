@@ -5,6 +5,8 @@ import ladiesPursesImage from "../assets/collections/ladies-purses.webp";
 import womensWatchesImage from "../assets/collections/womens-watches.webp";
 import { getCollections, getHomeProducts } from "../services/catalogService";
 import type { Collection } from "../types/catalog";
+import MaskReveal from "../components/motion/MaskReveal";
+import Reveal from "../components/motion/Reveal";
 
 // Fallback images for the collections that shipped with the store, so the
 // page still looks right before an admin uploads a feature image for them
@@ -63,15 +65,19 @@ function CollectionsPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-blyver-ink px-6 py-16 text-blyver-ivory sm:px-10">
+    <main className="brushed min-h-screen px-6 py-16 text-blyver-polished sm:px-10 sm:py-24">
       <div className="mx-auto max-w-7xl">
-        <p className="text-xs tracking-[0.28em] text-blyver-champagne">
-          BLYVER COLLECTIONS
-        </p>
+        <Reveal>
+          <p className="type-wide text-[10px] text-blyver-steel/75">
+            BLYVER COLLECTIONS
+          </p>
+        </Reveal>
 
-        <h1 className="mt-5 max-w-2xl text-4xl font-light sm:text-6xl">
-          Designed for every expression of elegance.
-        </h1>
+        <MaskReveal className="mt-5 max-w-3xl">
+          <h1 className="text-metal font-serif text-4xl leading-[1.04] sm:text-6xl">
+            Designed for every expression of elegance.
+          </h1>
+        </MaskReveal>
 
         {!loading && !error && collections.length === 0 && (
           <p className="mt-14 text-sm text-blyver-muted">
@@ -85,8 +91,8 @@ function CollectionsPage() {
         )}
 
         {collections.length > 0 && (
-          <div className="mt-14 grid gap-px bg-blyver-muted/30 sm:grid-cols-2">
-            {collections.map((collection) => {
+          <div className="mt-14 grid gap-5 sm:grid-cols-2">
+            {collections.map((collection, index) => {
               const livePhoto =
                 collection.slug === "mens-watches" ? menWatchPhoto : null;
               const image =
@@ -97,12 +103,12 @@ function CollectionsPage() {
                 ? ""
                 : (fallbackPositionBySlug[collection.slug] ?? "");
               return (
+                <Reveal key={collection.id} delay={(index % 2) * 0.1}>
                 <Link
-                  key={collection.id}
                   to={collection.linkPath || "/collections"}
-                  className="group overflow-hidden bg-blyver-charcoal"
+                  className="group block overflow-hidden bg-blyver-ink ring-1 ring-blyver-steel/12 transition-shadow duration-500 hover:ring-blyver-steel/35"
                 >
-                  <div className="h-64 overflow-hidden bg-black sm:h-72">
+                  <div className="h-64 overflow-hidden bg-blyver-ink sm:h-80">
                     {image && (
                       <img
                         src={image}
@@ -114,15 +120,22 @@ function CollectionsPage() {
                     )}
                   </div>
                   <div className="p-8 sm:p-10">
-                    <h2 className="text-2xl font-light">{collection.name}</h2>
-                    <p className="mt-3 max-w-sm text-sm leading-6 text-blyver-muted">
+                    <h2 className="font-serif text-2xl text-blyver-polished">
+                      {collection.name}
+                    </h2>
+                    <p className="mt-3 max-w-sm text-sm leading-6 text-blyver-steel/80">
                       {collection.description}
                     </p>
-                    <span className="mt-8 inline-block text-xs tracking-[0.18em] text-blyver-champagne">
+                    <span className="type-wide mt-8 inline-flex items-center gap-4 text-[10.5px] text-blyver-polished">
                       DISCOVER
+                      <span
+                        aria-hidden="true"
+                        className="h-px w-8 bg-blyver-steel transition-all duration-500 group-hover:w-16"
+                      />
                     </span>
                   </div>
                 </Link>
+                </Reveal>
               );
             })}
           </div>

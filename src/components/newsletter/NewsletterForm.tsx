@@ -49,11 +49,11 @@ function NewsletterForm() {
         required
         autoComplete="email"
         placeholder="Your email address"
-        className="w-full border border-blyver-ivory/40 bg-transparent px-4 py-4 text-sm text-blyver-ivory outline-none placeholder:text-blyver-muted focus:border-blyver-champagne"
+        className="w-full border border-blyver-steel/35 bg-blyver-ink/40 px-4 py-4 text-sm text-blyver-polished outline-none transition-colors placeholder:text-blyver-muted focus:border-blyver-steel"
       />
       <button
         disabled={status === "saving"}
-        className="border border-blyver-ivory/50 px-7 py-4 text-[11px] tracking-[0.18em] transition hover:border-blyver-champagne hover:text-blyver-champagne disabled:opacity-60"
+        className="btn-steel type-wide shrink-0 px-7 py-4 text-[10.5px] disabled:opacity-60"
       >
         {status === "saving" ? "JOINING…" : "JOIN THE LIST"}
       </button>

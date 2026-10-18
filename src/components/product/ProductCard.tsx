@@ -21,9 +21,9 @@ function ProductCard({ product }: ProductCardProps) {
     <article className="group">
       <Link
         to={`/product/${product.slug}`}
-        className="block overflow-hidden bg-blyver-ivory"
+        className="block overflow-hidden"
       >
-        <div className="relative aspect-square overflow-hidden bg-blyver-charcoal/10">
+        <div className="relative aspect-square overflow-hidden bg-blyver-polished shadow-[0_1px_0_rgb(255_255_255/0.8)_inset,0_18px_30px_-24px_rgb(23_27_32/0.6)]">
           {mainImage ? (
             <img
               src={mainImage.url}
@@ -32,25 +32,29 @@ function ProductCard({ product }: ProductCardProps) {
               height={600}
               loading="lazy"
               decoding="async"
-              className="size-full object-cover transition duration-700 group-hover:scale-105"
+              className="size-full object-cover transition duration-1000 group-hover:scale-105"
             />
           ) : (
-            <div className="grid size-full place-items-center text-[10px] tracking-[0.18em] text-blyver-muted">
+            <div className="type-wide grid size-full place-items-center text-[10px] text-blyver-muted">
               IMAGE COMING SOON
             </div>
           )}
           {discountPercentage && (
-            <span className="absolute left-4 top-4 bg-blyver-ink px-3 py-2 text-[10px] tracking-[0.14em] text-blyver-ivory">
+            <span className="type-wide absolute left-4 top-4 bg-blyver-ink px-3 py-2 text-[9.5px] text-blyver-polished">
               {discountPercentage}% OFF
             </span>
           )}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 ring-1 ring-blyver-ink/10 ring-inset transition-colors duration-500 group-hover:ring-blyver-steel"
+          />
         </div>
       </Link>
       <div className="pt-5">
         <div className="flex items-start justify-between gap-4">
           <Link
             to={`/product/${product.slug}`}
-            className="font-serif text-xl transition hover:text-blyver-champagne"
+            className="font-serif text-lg font-normal transition hover:text-blyver-blued-deep"
           >
             {product.name}
           </Link>
@@ -62,7 +66,7 @@ function ProductCard({ product }: ProductCardProps) {
           {product.shortDescription}
         </p>
         <div className="mt-4 flex items-baseline gap-3">
-          <span className="text-sm font-medium">
+          <span className="text-sm font-medium tabular-nums">
             {formatBdt(product.salePrice ?? product.originalPrice)}
           </span>
           {product.salePrice && (
