@@ -15,25 +15,25 @@ type Callout = {
 
 const callouts: Callout[] = [
   {
-    label: "Octagonal bezel, eight screws",
+    label: "Eight-screw bezel",
     anchor: [628, 205],
-    elbow: [690, 150],
-    end: [860, 150],
-    side: "right",
+    elbow: [700, 140],
+    end: [880, 140],
+    side: "left",
   },
   {
     label: "Open-worked dial",
-    anchor: [470, 300],
-    elbow: [410, 240],
-    end: [240, 240],
+    anchor: [590, 300],
+    elbow: [700, 320],
+    end: [880, 320],
     side: "left",
   },
   {
     label: "Integrated bracelet",
     anchor: [578, 455],
-    elbow: [640, 500],
-    end: [820, 500],
-    side: "right",
+    elbow: [660, 500],
+    end: [880, 500],
+    side: "left",
   },
 ];
 

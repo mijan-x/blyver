@@ -134,6 +134,25 @@ function HeroSection({ content }: { content: HomepageContent }) {
       return null;
     };
 
+    // Dissolve the frame's edges into the gunmetal page.
+    const feather = () => {
+      const edgeX = box.w * 0.16;
+      const edgeY = box.h * 0.16;
+      const edges: Array<[number, number, number, number, number, number, number, number]> = [
+        [box.x, 0, box.x + edgeX, 0, box.x, box.y, edgeX, box.h],
+        [box.x + box.w, 0, box.x + box.w - edgeX, 0, box.x + box.w - edgeX, box.y, edgeX, box.h],
+        [0, box.y, 0, box.y + edgeY, box.x, box.y, box.w, edgeY],
+        [0, box.y + box.h, 0, box.y + box.h - edgeY, box.x, box.y + box.h - edgeY, box.w, edgeY],
+      ];
+      for (const [x0, y0, x1, y1, x, y, w, h] of edges) {
+        const gradient = context.createLinearGradient(x0, y0, x1, y1);
+        gradient.addColorStop(0, "rgba(23, 27, 32, 1)");
+        gradient.addColorStop(1, "rgba(23, 27, 32, 0)");
+        context.fillStyle = gradient;
+        context.fillRect(x, y, w, h);
+      }
+    };
+
     const render = () => {
       const base = Math.max(0, Math.min(FRAME_COUNT - 1, Math.floor(current)));
       const blend = current - base;
@@ -149,6 +168,7 @@ function HeroSection({ content }: { content: HomepageContent }) {
         context.drawImage(second, box.x, box.y, box.w, box.h);
         context.globalAlpha = 1;
       }
+      feather();
       if (!drawn) {
         drawn = true;
         setReady(true);
@@ -241,17 +261,9 @@ function HeroSection({ content }: { content: HomepageContent }) {
           }`}
         />
 
-        {/* Blend the film into the gunmetal page. */}
-        {rect && (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 h-48 bg-gradient-to-b from-transparent to-blyver-ink"
-            style={{ top: rect.y + rect.h - 190 }}
-          />
-        )}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 hidden w-[62%] bg-gradient-to-r from-blyver-ink/95 via-blyver-ink/55 to-transparent md:block"
+          className="pointer-events-none absolute inset-y-0 left-0 hidden w-[55%] bg-gradient-to-r from-blyver-ink/90 via-blyver-ink/45 to-transparent md:block"
         />
         <div
           aria-hidden="true"
@@ -323,24 +335,31 @@ function HeroSection({ content }: { content: HomepageContent }) {
             {/* 05: back to the front, ready to shop. */}
             <m.div
               style={finale}
-              className="absolute inset-x-0 bottom-24 px-6 text-center sm:bottom-28"
+              className="absolute inset-x-0 bottom-28 px-6 sm:px-10 md:bottom-auto md:top-1/2 md:-translate-y-1/2"
             >
-              <h2 className="text-metal font-serif text-3xl leading-tight sm:text-5xl">
-                Made to be worn every day.
-              </h2>
-              <div className="mt-7 flex flex-wrap justify-center gap-3">
-                <Link
-                  to="/men"
-                  className="btn-steel type-wide px-7 py-4 text-[10.5px]"
-                >
-                  SHOP MEN
-                </Link>
-                <Link
-                  to="/women"
-                  className="btn-line type-wide bg-blyver-ink/40 px-7 py-4 text-[10.5px] text-blyver-polished backdrop-blur-sm"
-                >
-                  SHOP WOMEN
-                </Link>
+              <div className="mx-auto max-w-7xl">
+                <div className="max-w-sm">
+                  <p className="text-xs tabular-nums text-blyver-steel/70">
+                    05 / 05
+                  </p>
+                  <h2 className="text-metal mt-3 font-serif text-3xl leading-[1.05] sm:text-5xl">
+                    Made to be worn every day.
+                  </h2>
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    <Link
+                      to="/men"
+                      className="btn-steel type-wide px-7 py-4 text-[10.5px]"
+                    >
+                      SHOP MEN
+                    </Link>
+                    <Link
+                      to="/women"
+                      className="btn-line type-wide px-7 py-4 text-[10.5px] text-blyver-polished"
+                    >
+                      SHOP WOMEN
+                    </Link>
+                  </div>
+                </div>
               </div>
             </m.div>
 

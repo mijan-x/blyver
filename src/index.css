@@ -148,6 +148,9 @@
     #98a3ad 56%,
     #e7ebee 100%
   );
+  /* One sheen per line, so every line of a headline reads the same. */
+  background-size: 100% 1lh;
+  background-repeat: repeat-y;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

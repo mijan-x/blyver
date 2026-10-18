@@ -85,9 +85,10 @@ export function loadOrder() {
 export type FrameRect = { x: number; y: number; w: number; h: number };
 
 // Where the frame is drawn inside a stage of width × height (CSS pixels).
-// Wide screens: cover the stage, slightly enlarged, with the watch a little
-// right of centre to leave room for the captions. Portrait phones: the frame
-// sits at the top, wider than the screen, with the captions below it.
+// Wide screens: the film floats a little smaller than the stage, to the
+// right of the captions, and its edges dissolve into the page (see the
+// feathering in HeroSection). Portrait phones: the frame sits at the top,
+// wider than the screen, with the captions below it.
 export function frameRect(width: number, height: number): FrameRect {
   const aspect = FRAME_WIDTH / FRAME_HEIGHT;
   if (width / height < 0.9) {
@@ -96,11 +97,10 @@ export function frameRect(width: number, height: number): FrameRect {
   }
   const cover = Math.max(width / FRAME_WIDTH, height / FRAME_HEIGHT);
   const wide = width >= 1024;
-  const scale = wide ? cover * 1.12 : cover;
+  const scale = cover * (wide ? 0.8 : 0.95);
   const w = FRAME_WIDTH * scale;
   const h = FRAME_HEIGHT * scale;
-  const x = Math.min(0, Math.max(width - w, width * (wide ? 0.58 : 0.5) - w / 2));
-  return { x, y: (height - h) / 2, w, h };
+  return { x: width * (wide ? 0.62 : 0.56) - w / 2, y: (height - h) / 2, w, h };
 }
 
 // Smaller frames on save-data or slow connections.
