@@ -77,6 +77,12 @@ supabase/
   - [x] Coupon discounts are not previewed (customers cannot read `coupons`); a note says the discount is applied when the order is placed
   - [ ] Not yet verified with `npm run build` / `npm run lint` (registry unreachable in the session that wrote it)
 
+- [x] Newsletter sign-up (branch `feat/newsletter-signup`)
+  - [x] Homepage "Join the Blyver list" is now an email form (it used to link to `/contact` and captured nothing)
+  - [x] Migration `20261018120000_newsletter_subscribers.sql`: `newsletter_subscribers` table, anyone can insert, only admins can read; repeat sign-ups are ignored silently
+  - [ ] Migration NOT yet applied to the live Supabase project: run it by hand in the SQL editor before merging, or the form shows an error
+  - [ ] Not yet verified with `npm run build` / `npm run lint`
+  - [ ] No admin screen for the list yet; read it in the Supabase table editor
 - [x] "The Blyver Edit" section had an empty left column; it now shows a mosaic of up to 4 real product photos from the live catalogue (`src/components/home/EditCollage.tsx`, branch `feat/blyver-edit-collage`)
 
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
@@ -120,7 +126,7 @@ supabase/
 - ~~Category chips are not clickable~~ — fixed (`feat/clickable-category-chips`, PR #15). Chips are now real buttons backed by `getCategories(gender)` (reads the `categories` table) with an "All" option; clicking filters the grid via `getCatalogProducts`' existing `categoryId` filter. Note: `/women` currently has zero category rows in the live DB, so no chip row renders there yet — not a bug, just no data.
 - ~~Tab icon shown as the Vite scaffold's purple bolt for some visitors~~ — fixed (PR #16 removed the orphaned `public/favicon.svg`; PR #17 renamed `favicon.png` → `favicon-b.png` and updated `index.html`'s `<link>` to cache-bust browsers that had the old icon cached — no customer action needed, the new URL is fetched fresh automatically).
 - ~~No way for admin to change the `/collections` page's names/descriptions/images~~ — fixed (PR #18, `feat/admin-collections`). The page was entirely hardcoded in source; now backed by the `collections` table (which already existed but was unused) via `getCollections()`, with full CRUD at `/admin/collections` (name, description, "Discover" link, display order, visibility, image upload to the `product-images` bucket under `collections/`). Migration `20261016180000_collections_admin.sql` added a `link_path` column and seeded the 4 previously-hardcoded collections as real rows (image_path left null — admin needs to upload real images via `/admin/collections` to replace the bundled-image fallback `CollectionsPage` falls back to for those 4 known slugs).
-- Search, About and Contact pages are placeholders.
+- About and Contact pages are placeholders. (Search was built in `feat/search-page`: name search at `/search?q=`, up to 24 results; `feat/search-suggestions` adds product-name suggestions while typing.)
 - Variants exist in the database but are unused by the UI.
 - The homepage's own section images ("FOR HIM"/"FOR HER"/"ELEGANT CARRY" banners in `HomePage.tsx`) are still hardcoded bundled images, separate from the `/collections` page fixed above — not wired to the `collections` table. Revisit if admin wants those editable too.
 

@@ -127,13 +127,40 @@ export async function getCatalogProducts(
   if (filters.categoryId) query = query.eq("category_id", filters.categoryId);
   if (filters.inStockOnly) query = query.gt("stock_quantity", 0);
   if (filters.onSaleOnly) query = query.not("sale_price", "is", null);
-  if (filters.query) query = query.ilike("name", `%${filters.query}%`);
+  if (filters.query) {
+    // Escape LIKE wildcards so "100%" or "a_b" match literally.
+    const term = filters.query.trim().replace(/[\\%_]/g, "\\$&");
+    query = query.ilike("name", `%${term}%`);
+  }
 
   const { data, error } = await query;
 
   if (error) throw error;
 
   return ((data ?? []) as ProductRow[]).map(toProduct);
+}
+
+// Active product names for search-as-you-type suggestions. Fetched once per
+// page load (names only, no joins) and filtered in the browser.
+let productNamesPromise: Promise<string[]> | null = null;
+
+export function getProductNameSuggestions(): Promise<string[]> {
+  if (!productNamesPromise) {
+    productNamesPromise = (async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("name")
+        .eq("status", "active")
+        .order("name", { ascending: true })
+        .limit(500);
+      if (error) throw error;
+      return Array.from(new Set((data ?? []).map((row) => row.name)));
+    })().catch((error: unknown) => {
+      productNamesPromise = null; // let the next focus retry
+      throw error;
+    });
+  }
+  return productNamesPromise;
 }
 
 // Fetches an exact set of products by id, regardless of the catalog list's
