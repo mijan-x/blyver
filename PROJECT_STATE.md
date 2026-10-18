@@ -87,6 +87,8 @@ supabase/
 
 - [x] Homepage "For him" tile shows real men's product photos (two watches, featured first) from the live catalogue instead of cropping the brand cover (`MenTileImage.tsx`, branch `feat/for-him-real-photos`); falls back to the cover if none. The catalogue has no wallet products yet, so no wallet photo appears -- add a wallet product (or supply a photo) to show one.
 
+- [x] `/collections`: "Men's Watches" card shows a real men's watch photo from the live catalogue (until an admin uploads one); "Wallets" fallback is cropped to the wallet side of the brand cover. An admin-uploaded image always wins. Still placeholder: Wallets (no wallet products yet) and Ladies' Purses (see the content note in Notes).
+
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
 - Valid Bangladesh mobile required (`01[3-9]XXXXXXXX`; `+880`/`880` and spaces/dashes accepted, stored as `01XXXXXXXXX` in `orders.guest_phone`).
