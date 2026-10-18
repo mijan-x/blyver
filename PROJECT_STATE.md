@@ -77,6 +77,8 @@ supabase/
   - [x] Coupon discounts are not previewed (customers cannot read `coupons`); a note says the discount is applied when the order is placed
   - [ ] Not yet verified with `npm run build` / `npm run lint` (registry unreachable in the session that wrote it)
 
+- [x] "The Blyver Edit" section had an empty left column; it now shows a mosaic of up to 4 real product photos from the live catalogue (`src/components/home/EditCollage.tsx`, branch `feat/blyver-edit-collage`)
+
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
 - Valid Bangladesh mobile required (`01[3-9]XXXXXXXX`; `+880`/`880` and spaces/dashes accepted, stored as `01XXXXXXXXX` in `orders.guest_phone`).
@@ -123,6 +125,8 @@ supabase/
 - The homepage's own section images ("FOR HIM"/"FOR HER"/"ELEGANT CARRY" banners in `HomePage.tsx`) are still hardcoded bundled images, separate from the `/collections` page fixed above — not wired to the `collections` table. Revisit if admin wants those editable too.
 
 ## Notes
+
+- Content check needed: `src/assets/collections/ladies-purses.webp` (used on the homepage and `/collections`) shows a coral purse with a visible third-party brand clasp, while its alt text says "teal leather purse". Replace it with a real Blyver product photo (or admin-upload one at `/admin/collections`).
 
 - `getCatalogProducts` now returns at most 24 products and omits description, variants, specifications and collection ids. Use `getProductBySlug` for full product data.
 - ~~`wishlistService` calls `getCatalogProducts()` and filters client-side, so wishlists can miss items beyond the first 24 products~~ — fixed (`fix/wishlist-beyond-24`). Added `getProductsByIds` in `catalogService` (same lean list fields, no 24-item limit, no `.limit()` at all) and pointed `getWishlistProducts` at it instead.
