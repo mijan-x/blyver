@@ -71,6 +71,12 @@ supabase/
   - [x] `/account` shows a "Store dashboard" card to admins, linking to `/admin`
   - [x] Header utility nav shows an "Admin" link to admins, desktop and mobile
 
+- [x] Checkout order summary (branch `feat/checkout-order-summary`)
+  - [x] `/checkout` shows items, subtotal, delivery charge and total before "Place order" (button also shows the total)
+  - [x] Delivery uses `site_settings` (`delivery_charge`, `free_delivery_threshold`), same rule as the database functions
+  - [x] Coupon discounts are not previewed (customers cannot read `coupons`); a note says the discount is applied when the order is placed
+  - [ ] Not yet verified with `npm run build` / `npm run lint` (registry unreachable in the session that wrote it)
+
 ### Guest checkout rules (enforced by `create_guest_cod_order`)
 
 - Valid Bangladesh mobile required (`01[3-9]XXXXXXXX`; `+880`/`880` and spaces/dashes accepted, stored as `01XXXXXXXXX` in `orders.guest_phone`).
