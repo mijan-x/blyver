@@ -5,6 +5,7 @@ import {
   getHomepageContent,
   type HomepageContent,
 } from "../services/contentService";
+import NewsletterForm from "../components/newsletter/NewsletterForm";
 import Seo from "../components/seo/Seo";
 import coverImage from "../assets/brand/landing-cover.webp";
 import ladiesPursesImage from "../assets/collections/ladies-purses.webp";
@@ -243,12 +244,7 @@ function HomePage() {
           <p className="mx-auto mt-6 max-w-md text-sm leading-7 text-blyver-muted">
             {content.newsletterDescription}
           </p>
-          <Link
-            to="/contact"
-            className="mt-9 inline-flex border border-blyver-ivory/50 px-7 py-4 text-[11px] tracking-[0.18em] transition hover:border-blyver-champagne hover:text-blyver-champagne"
-          >
-            JOIN THE BLYVER LIST <Arrow />
-          </Link>
+          <NewsletterForm />
         </div>
       </section>
     </main>
